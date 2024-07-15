@@ -1,0 +1,13 @@
+function SPI.readChar 1
+push constant 2052
+call Mem.peek 1
+pop local 0
+push local 0
+return
+function SPI.writeChar 0
+push constant 2052
+push argument 0
+call Mem.poke 2
+pop temp 0
+push constant 0
+return

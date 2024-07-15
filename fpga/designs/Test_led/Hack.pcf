@@ -1,0 +1,3 @@
+# physical constraint file
+
+set_io always_true 1 # 5 PIO3_1A

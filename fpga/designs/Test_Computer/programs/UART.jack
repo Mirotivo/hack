@@ -1,0 +1,19 @@
+class UART {
+    /**
+     * Reads a character from the UART.
+     * Returns the character read.
+     */
+    function int receiveChar() {
+        var int c;
+        let c = Mem.peek(2050);
+        return c;
+    }
+
+    /** 
+     * Sends the character `c` to the UART.
+     */
+    function void sendChar(int c) {
+        do Mem.poke(2051, c);
+        return;
+    }
+}

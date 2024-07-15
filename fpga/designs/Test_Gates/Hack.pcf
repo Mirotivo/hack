@@ -1,0 +1,9 @@
+# physical constraint file
+
+# Bit 2
+set_io CLK_100MHz 15
+set_io but[0] 41
+set_io but[1] 42
+
+set_io led[0] 40
+set_io led[1] 51

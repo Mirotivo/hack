@@ -1,0 +1,28 @@
+class GPIO {
+    field int ledAddr;
+    field int butAddr;
+
+    /** Initialize LED and BUT. LED is memory mapped to addr.
+     *  BUT is memory mapped to addr + 1  */
+    function void init(int addr){
+        let ledAddr = addr;
+        let butAddr = addr + 1;
+        return;
+    }
+
+    /** Returns the value of LED. */
+    function int readLed(){
+        return Memory.peek(ledAddr);
+    }
+
+    /** Write value to LED */
+    function void writeLed(int value){
+        do Memory.poke(ledAddr, value);
+        return;
+    }
+
+    /** Returns the value of BUT */
+    function int readBut() {
+        return Memory.peek(butAddr);
+    }
+}

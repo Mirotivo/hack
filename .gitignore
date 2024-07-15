@@ -1,0 +1,11 @@
+.pioenvs/
+.pio/
+.vscode/
+tools/
+*.log
+*.rpt
+*.bin
+*.out
+*.cmp
+*.vcd
+*.vvp

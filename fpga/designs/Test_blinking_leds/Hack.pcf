@@ -1,0 +1,9 @@
+# physical constraint file
+
+# Clock
+set_io CLK_100MHz_in 15
+
+set_io leds[0] 1 # PIO3_1A
+set_io leds[1] 2 # PIO3_1B
+set_io leds[2] 3 # PIO3_2A
+set_io leds[3] 4 # PIO3_2B

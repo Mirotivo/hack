@@ -1,0 +1,12 @@
+class Mem {
+    static Array RAM;
+
+    function void poke(int address, int value) {
+        let RAM[address] = value;
+        return;
+    }
+
+    function int peek(int address) {
+        return RAM[address];
+    }
+}
