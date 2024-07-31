@@ -1,7 +1,9 @@
 .pioenvs/
 .pio/
 .vscode/
-tools/
+tools/*
+!tools/IDE/
+!tools/IDE/**
 *.log
 *.rpt
 *.bin

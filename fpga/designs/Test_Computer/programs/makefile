@@ -7,12 +7,9 @@ JACK_EXT = .jack
 VM_EXT = .vm
 
 # Tools
-JACK_ANALYZER = ../../../../tools/Compiler/JackAnalyzer.py
-VM_TRANSLATOR = ../../../../tools/VMTranslator/vm_translator.py
-HACK_ASSEMBLER = ../../../../tools/Assembler/Assembler.py
-# JACK_ANALYZER = ../../../../tools/IDE/main.py "compile"
-# VM_TRANSLATOR = ../../../../tools/IDE/main.py "translate"
-# HACK_ASSEMBLER = ../../../../tools/IDE/main.py "assemble"
+JACK_ANALYZER = ../../../../tools/IDE/main.py "compile"
+VM_TRANSLATOR = ../../../../tools/IDE/main.py "translate"
+HACK_ASSEMBLER = ../../../../tools/IDE/main.py "assemble"
 
 # File lists
 JACK_FILES = $(addsuffix $(JACK_EXT), $(BASES))
