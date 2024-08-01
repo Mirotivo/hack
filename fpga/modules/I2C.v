@@ -62,7 +62,7 @@ module I2C(
     assign scl_out = i2c_clk;  // Drive the SCL line with the internal clock
 
     always @(posedge CLK_100MHz) begin
-        if (clk_div_counter == 499) begin
+        if (clk_div_counter == 999) begin
             i2c_clk <= ~i2c_clk;
             clk_div_counter <= 0;
         end else begin
