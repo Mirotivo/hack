@@ -35,7 +35,7 @@ $(PROJ).bin: $(PROJ).asc
 	icepack $< $@
 	# @bash -c 'read -p "Press enter to continue..."'
 
-prog: $(PROJ).bin
+prog: assemble $(PROJ).bin
 	../../../tools/winiceprogduino/winiceprogduino.exe -I COM3 $(PROJ).bin
 
 clean:

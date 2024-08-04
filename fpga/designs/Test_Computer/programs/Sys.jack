@@ -2,14 +2,12 @@ class Sys {
     function void init() {
         var int c;
 
-        do UART.sendChar(72);   // H
-        do UART.sendChar(105);  // i
-        do UART.sendChar(32);   // (space)
-        do UART.sendChar(65);   // A
-        do UART.sendChar(104);  // h
-        do UART.sendChar(109);  // m
-        do UART.sendChar(101);  // e
-        do UART.sendChar(100);  // d
+        do UART.sendChar( 'H' );
+        do UART.sendChar( 'i' );
+        do UART.sendChar( ' ' );
+        do UART.sendChar( 'A' );
+        do UART.sendChar( 'm' );
+        do UART.sendChar( 'r' );
 
         // Infinite loop to read and echo characters
         while (true) {

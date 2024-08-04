@@ -47,8 +47,10 @@ class JackTokenizer:
             if line == '':
                 return None
             self.line = self._removeMeaningless(line)
+        
         token = None
         sCrop = None
+        
         if self.line[0] in self.symbols:
             token = Token(self.line[0], Token.kinds['symbol'])
             sCrop = 1
@@ -56,13 +58,20 @@ class JackTokenizer:
             string = self.line.split(self.stringS)[1]
             token = Token(string, Token.kinds['stringConstant'])
             sCrop = len(string) + 2
+        elif self.line[0] == "'":
+            if len(self.line) > 2 and self.line[2] == "'":
+                token = Token(self.line[:3], Token.kinds['charConstant'])
+                sCrop = 3
+            else:
+                raise ValueError("Invalid char constant")
         else:
-            nextword = self.line.split(' ')[0][:self._firstSymbolIndex(self.line.split(' ')[0])]
+            nextword = self.line.split(' ')[0]
+            first_symbol_idx = self._firstSymbolIndex(nextword)
+            if first_symbol_idx < len(nextword):
+                nextword = nextword[:first_symbol_idx]
+
             if nextword.isdigit():
                 token = Token(nextword, Token.kinds['integerConstant'])
-                sCrop = len(nextword)
-            elif len(nextword) == 3 and nextword[0] == "'" and nextword[2] == "'":
-                token = Token(nextword, Token.kinds['charConstant'])
                 sCrop = len(nextword)
             elif nextword in self.keywords:
                 token = Token(nextword, Token.kinds['keyword'], Token.keyWords[nextword])
@@ -70,6 +79,7 @@ class JackTokenizer:
             else:
                 token = Token(nextword, Token.kinds['identifier'])
                 sCrop = len(nextword)
+
         if writeChange: self.line = self.line[sCrop:]
         return token
     
