@@ -13,7 +13,6 @@ class Token:
 class JackTokenizer:
     symbols = '{[]}().,;+-*/&!|<>=~'
     keywords = 'class, constructor, function, method, field, static, var, int, char, boolean, void, true, false, null, this, let, do, if, else, while, return'.split(', ')
-    stringS = '"'
 
     def __init__(self, filename) -> None:
         self.insideComment = False
@@ -54,8 +53,8 @@ class JackTokenizer:
         if self.line[0] in self.symbols:
             token = Token(self.line[0], Token.kinds['symbol'])
             sCrop = 1
-        elif self.line[0] == self.stringS:
-            string = self.line.split(self.stringS)[1]
+        elif self.line[0] == '"':
+            string = self.line.split('"')[1]
             token = Token(string, Token.kinds['stringConstant'])
             sCrop = len(string) + 2
         elif self.line[0] == "'":
