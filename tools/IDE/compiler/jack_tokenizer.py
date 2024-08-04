@@ -1,7 +1,7 @@
 # compiler/jack_tokenizer.py
 class Token:
     keyWords = {'class': 'class', 'constructor': 'constructor', 'function': 'function', 'method': 'method', 'field': 'field', 'static': 'static', 'var': 'var', 'int': 'int', 'char': 'char', 'boolean': 'boolean', 'void': 'void', 'true': 'true', 'false': 'false', 'null': 'null', 'this': 'this', 'let': 'let', 'do': 'do', 'if': 'if', 'else': 'else', 'while': 'while', 'return': 'return'}
-    kinds = {'symbol': 'symbol', 'stringConstant': 'stringConstant', 'integerConstant': 'integerConstant', 'keyword': 'keyword', 'identifier': 'identifier'}
+    kinds = {'symbol': 'symbol', 'charConstant': 'charConstant', 'stringConstant': 'stringConstant', 'integerConstant': 'integerConstant', 'keyword': 'keyword', 'identifier': 'identifier'}
     
     def __init__(self, string, kind, keyWord= None) -> None:
         assert kind == None or kind in self.kinds
@@ -60,6 +60,9 @@ class JackTokenizer:
             nextword = self.line.split(' ')[0][:self._firstSymbolIndex(self.line.split(' ')[0])]
             if nextword.isdigit():
                 token = Token(nextword, Token.kinds['integerConstant'])
+                sCrop = len(nextword)
+            elif len(nextword) == 3 and nextword[0] == "'" and nextword[2] == "'":
+                token = Token(nextword, Token.kinds['charConstant'])
                 sCrop = len(nextword)
             elif nextword in self.keywords:
                 token = Token(nextword, Token.kinds['keyword'], Token.keyWords[nextword])

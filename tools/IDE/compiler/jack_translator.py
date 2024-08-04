@@ -14,6 +14,11 @@ class JackTranslator:
         tokenizer = JackTokenizer(self.filepath)
         writer = JackCodeEmitter(output)
 
+        # # Tokenizer
+        # while tokenizer.hasMoreTokens():
+        #     tokenizer.advance()
+        #     print(tokenizer.getToken().string, tokenizer.getToken().kind, tokenizer.getToken().keyWord)
+
         while tokenizer.hasMoreTokens():
             if tokenizer.peekNextToken().string != 'class':
                 return print('ERROR!!!!! non-class root token [' + tokenizer.getToken().string + '->' + tokenizer.peekNextToken().string + ']')

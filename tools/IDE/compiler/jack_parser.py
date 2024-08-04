@@ -184,6 +184,7 @@ class Term:
         token = tokenizer.advance()
         self.mainVal, self.expression, self.subroutineCall, self.unaryOp, self.term = (None,) * 5
         isIntergerConstant = (token.kind == Token.kinds['integerConstant'])
+        isCharConstant = (token.kind == Token.kinds['charConstant'])
         isStringConstant = (token.kind == Token.kinds['stringConstant'])
         isKeywordConstant = (token.string in KeywordConstant.triggers)
         isSubroutineCall = (token.kind == Token.kinds['identifier'] and tokenizer.peekNextToken().string in SubroutineCall.nextTriggers)
@@ -193,6 +194,9 @@ class Term:
         
         if isIntergerConstant:
             writer.writePush('constant', token.string)
+        elif isCharConstant:
+            char = token.string[1]
+            writer.writePush('constant', ord(char))
         elif isKeywordConstant:
             if token.string in ['null', 'false']:
                 writer.writePush('constant', 0)
