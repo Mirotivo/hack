@@ -53,6 +53,9 @@ module MemoryMappedIO(
     localparam ADDR_UART_RX   = 2050;
     localparam ADDR_UART_TX   = 2051;
     localparam ADDR_SPI       = 2052;
+    
+    // Clock enable timing parameter
+    localparam CLK_COUNT_WRITE = 10;
 
     // Internal data register for memory read
     wire [15:0] memDataR;
@@ -76,7 +79,7 @@ module MemoryMappedIO(
     wire [15:0] spiDataOut;
 
     // Instantiate Memory module for addresses 0 to 2047
-    Memory Memory (
+    Memory memory_inst (
         .CLK_100MHz(CLK_100MHz),
         .CLK_CPU(CLK_CPU),
         .CLK_COUNT(CLK_COUNT),
@@ -87,7 +90,7 @@ module MemoryMappedIO(
     );
 
     // Instantiate UART Transmitter
-    UartTX UartTX (
+    UartTX uart_tx_inst (
         .CLK_100MHz(CLK_100MHz),
         .load(uartTxLoad),
         .in(uartTxBuffer),
@@ -96,7 +99,7 @@ module MemoryMappedIO(
     );
 
     // Instantiate UART Receiver
-    UartRX UartRX (
+    UartRX uart_rx_inst (
         .CLK_100MHz(CLK_100MHz),
         .clear(uartRxClear),
         .RX(UART_RX),
@@ -105,7 +108,7 @@ module MemoryMappedIO(
     );
 
     // Instantiate SPI module
-    SPI SPI (
+    SPI spi_inst (
         .CLK_100MHz(CLK_100MHz),
         .reset(1'b0), // Assume reset is not needed for now
         .load(spiLoad),
@@ -149,8 +152,8 @@ module MemoryMappedIO(
                  (address == ADDR_SPI) ? spiDataOut :
                  16'h0000;
 
-        // Write operation
-        if (loadM && (CLK_COUNT == 10 && CLK_CPU == 1'b1)) begin
+        // Write operation - synchronized with CPU clock
+        if (loadM && (CLK_COUNT == CLK_COUNT_WRITE && CLK_CPU == 1'b1)) begin
             if (address <= ADDR_RAM_END) begin
                 // Write to Memory module handled internally
             end else begin

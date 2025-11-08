@@ -6,7 +6,9 @@ tools/*
 !tools/IDE/**
 *.log
 *.rpt
+*.asc
 *.bin
+*.blif
 *.out
 *.cmp
 *.vcd

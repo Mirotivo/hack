@@ -52,6 +52,7 @@
 // `include "../modules/HACK.v"
 
 
+`include "../modules/Keypad.v"
 `include "../modules/UartTX.v"
 `include "../modules/UartRX.v"
 `include "../modules/SPI.v"

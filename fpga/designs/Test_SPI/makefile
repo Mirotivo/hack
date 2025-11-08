@@ -1,38 +1,31 @@
 PROJ = Hack
-TOP_MODULE = $(PROJ)_tb
-OUTPUT_BIN = $(TOP_MODULE).vvp
-OUTPUT_VCD = $(TOP_MODULE).vcd
 PIN_DEF = $(PROJ).pcf
 DEVICE = hx1k
 
-all: $(OUTPUT_BIN) $(OUTPUT_VCD)
+all: prog
 
-$(OUTPUT_BIN): $(TOP_MODULE).v
-	iverilog -o $(OUTPUT_BIN) -s $(TOP_MODULE) $(TOP_MODULE).v
-
-$(OUTPUT_VCD): $(OUTPUT_BIN)
-	vvp $(OUTPUT_BIN) -t 10s
-
-%.blif: %.v
+$(PROJ).blif: $(PROJ).v
+	rm -f *.blif *.asc *.bin
 	yosys -p 'synth_ice40 -top $(PROJ) -blif $@' $<
-	# yosys -p 'synth_ice40 -top Hack -blif Hack.blif' Hack.v
+	# @bash -c 'read -p "Press enter to continue..."'
 
-%.asc: $(PIN_DEF) %.blif
+$(PROJ).asc: $(PIN_DEF) $(PROJ).blif
 	arachne-pnr -d $(subst hx,,$(subst lp,,$(DEVICE))) -o $@ -p $^ -P vq100
+	# @bash -c 'read -p "Press enter to continue..."'
 
-%.bin: %.asc
+$(PROJ).bin: $(PROJ).asc
 	icepack $< $@
-
-sim: $(OUTPUT_BIN)
-	vvp $(OUTPUT_BIN)
-
-view: $(OUTPUT_VCD)
-	gtkwave $(OUTPUT_VCD)
+	# @bash -c 'read -p "Press enter to continue..."'
 
 prog: $(PROJ).bin
-	../../../tools/winiceprogduino/winiceprogduino.exe -I COM3 $<
+	../../../tools/winiceprogduino/winiceprogduino.exe -I COM8 $(PROJ).bin
 
 clean:
-	rm -f  *.blif *.asc *.bin   *.vvp *.vcd *.out
+	rm -f *.blif *.asc *.bin programs/*.hex programs/*.hack
 
-.PHONY: all clean view
+.PHONY: all clean prog assemble
+
+assemble:
+	$(MAKE) -C programs clean
+	$(MAKE) -C programs
+	@bash -c 'read -p "Press enter to continue..."'

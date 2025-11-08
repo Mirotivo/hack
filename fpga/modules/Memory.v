@@ -34,17 +34,26 @@ module Memory(
     // Memory storage
     reg [15:0] regRAM [0:2047];
     
+    // Clock enable timing parameters
+    localparam CLK_COUNT_READ = 5;   // Read at same time as ROM
+    localparam CLK_COUNT_WRITE = 10; // Write after CPU computation
+    
     // Initial memory load
     initial begin
         $readmemb(`RAMFILE, regRAM);
     end
 
-    // Read and write operations
+    // Synchronized read and write operations
     always @(posedge CLK_100MHz) begin
-        if (loadM && (CLK_COUNT == 10 && CLK_CPU == 1'b1)) begin
+        // Write operation - synchronized with CPU clock
+        if (loadM && (CLK_COUNT == CLK_COUNT_WRITE && CLK_CPU == 1'b1)) begin
             regRAM[address] <= dataW;
         end
-        dataR <= regRAM[address];
+        
+        // Read operation - synchronized with CPU clock
+        if (CLK_COUNT == CLK_COUNT_READ && CLK_CPU == 1'b1) begin
+            dataR <= regRAM[address];
+        end
     end
 
 endmodule

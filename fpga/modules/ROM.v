@@ -21,10 +21,12 @@ module ROM(
     initial begin
         $readmemb(`ROMFILE, regROM);
     end
+    // Clock enable timing parameter
+    localparam CLK_COUNT_READ = 5;
+    
     always @(posedge CLK_100MHz) begin
-        if ((CLK_COUNT == 5 && CLK_CPU == 1'b1))
-        begin
-            instruction = regROM[pc];
+        if (CLK_COUNT == CLK_COUNT_READ && CLK_CPU == 1'b1) begin
+            instruction <= regROM[pc];  // Non-blocking assignment for sequential logic
         end
     end
 

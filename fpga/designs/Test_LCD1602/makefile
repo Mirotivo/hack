@@ -37,7 +37,7 @@ $(PROJ).bin: $(PROJ).asc
 	# @bash -c 'read -p "Press enter to continue..."'
 
 prog: $(PROJ).bin
-	../../../tools/winiceprogduino/winiceprogduino.exe -I COM3 $(PROJ).bin
+	../../../tools/winiceprogduino/winiceprogduino.exe -I COM8 $(PROJ).bin
 
 clean:
 	rm -f *.blif *.asc *.bin *.vvp *.vcd *.out programs/*.hex programs/*.hack

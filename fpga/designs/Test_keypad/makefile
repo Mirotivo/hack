@@ -2,7 +2,7 @@ PROJ = Hack
 PIN_DEF = $(PROJ).pcf
 DEVICE = hx1k
 
-all: $(PROJ).rpt $(PROJ).bin
+all: prog
 
 %.blif: %.v
 	yosys -p 'synth_ice40 -top $(PROJ) -blif $@' $<
@@ -18,7 +18,7 @@ all: $(PROJ).rpt $(PROJ).bin
 	icetime -d $(DEVICE) -mtr $@ $<
 
 prog: $(PROJ).bin
-	../../../tools/winiceprogduino/winiceprogduino.exe -I COM3 $<
+	../../../tools/winiceprogduino/winiceprogduino.exe -I COM8 $(PROJ).bin
 
 clean:
 	rm -f $(PROJ).blif $(PROJ).asc $(PROJ).bin

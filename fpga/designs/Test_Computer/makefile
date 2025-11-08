@@ -36,9 +36,10 @@ $(PROJ).bin: $(PROJ).asc
 	# @bash -c 'read -p "Press enter to continue..."'
 
 prog: assemble $(PROJ).bin
-	../../../tools/winiceprogduino/winiceprogduino.exe -I COM3 $(PROJ).bin
+	../../../tools/winiceprogduino/winiceprogduino.exe -I COM8 $(PROJ).bin
 
 clean:
-	rm -f *.blif *.asc *.bin *.vvp *.vcd *.out programs/*.hex programs/*.hack
+	rm -f *.blif *.asc *.bin *.vvp *.vcd *.out programs/*.hex programs/*.hack programs/*.vm
+	find programs -type f -name '*.asm' ! -name 'echo.asm' ! -name 'helloworld.asm' ! -name 'Sys.asm' -delete
 
 .PHONY: all clean prog sim view assemble prog

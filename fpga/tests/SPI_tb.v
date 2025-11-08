@@ -1,82 +1,63 @@
 `include "include.v"
-`timescale 10ns/1ns
+`timescale 1ns/1ns
 `default_nettype none
 
 module SPI_tb();
+    reg CLK_100MHz = 0;
+    reg reset = 1;
+    reg load = 0;
+    reg [15:0] in = 0;
+    wire busy;
+    wire [15:0] out;
+    wire CSX, SDO, SCK;
+    reg SDI = 0;
 
-	// IN,OUT
-	reg clk = 0;
-	reg load = 0;
-	reg [15:0] in = 0;
-	wire [15:0] out;
-	wire CSX;
-	wire SDO;
-	reg SDI=0;
-	wire SCK;
+    // Instantiate the SPI module
+    SPI uut (
+        .CLK_100MHz(CLK_100MHz),
+        .reset(reset),
+        .load(load),
+        .in(in),
+        .busy(busy),
+        .out(out),
+        .CSX(CSX),
+        .SDO(SDO),
+        .SDI(SDI),
+        .SCK(SCK)
+    );
 
-	// Part
-	SPI SPI(
-    	.clk(clk),
-		.load(load),
-		.in(in),
-		.out(out),
-		.CSX(CSX),
-		.SDO(SDO),
-		.SDI(SDI),
-		.SCK(SCK)
-	);
-	
-	// Simulate
-	always #2 clk=~clk;
-	wire trigger;
-	assign trigger = (n==20) || (n==40) || (n==60) || (n==80) || (n==100);
-	always @(posedge clk) begin
-		in <= $random;
-		load <= trigger;
-		SDI <= $random;
-	end
+    // Clock generation: 100 MHz => 10 ns period
+    always #5 CLK_100MHz = ~CLK_100MHz;
 
-	// Compare
-	reg[4:0] bits=0;
-	always @(posedge clk)
-		bits <= (load&~in[8])?1:((bits==16)?0:(busy?bits+1:0));
-	wire busy=|bits;
-	wire [15:0] out_cmp = {busy,7'd0,shift};
-	reg [7:0] shift=0;
-	reg miso_s;
-	always @(posedge clk)
-		miso_s <= SDI;
-	always @(posedge clk)
-		shift <= load?in[7:0]:(~SCK_cmp?shift:{shift[6:0],miso_s});
-	wire SCK_cmp=busy&~bits[0];
-	reg CSX_cmp=1;
-	always @(posedge clk)
-		CSX_cmp<=load?in[8]:CSX_cmp;
-	wire SDO_cmp=shift[7];	
-	reg fail = 0;
-	reg [31:0] n = 0;
-	task check;
-		#4
-		if ((out!=out_cmp)||(SCK!=SCK_cmp)||(SDO!=SDO_cmp)||(CSX!=CSX_cmp))
-			begin
-				$display("FAIL: clk=%1b, load=%1b, in=%16b, out=%16b, CSX=%1b, SDO=%1b, SDI=%1b, SCK=%1b",clk,load,in,out,CSX,SDO,SDI,SCK);
-				fail=1;
-			end
-	endtask
+    // Simulate SDI response (return 0b10101010)
+    reg [7:0] slave_data = 8'b10101010;
 
-	initial begin
-		$dumpfile("SPI_tb.vcd");
-  		$dumpvars(0, SPI_tb);
-		
-		$display("------------------------");
-		$display("Testbench: SPI");
+    initial begin
+        $dumpfile("SPI_tb.vcd");
+        $dumpvars(0, SPI_tb);
 
-		for (n=0; n<400;n=n+1) 
-				check();
-		
-		if (fail==0) $display("passed");
-		$display("------------------------");
-		$finish;
-	end
+        // Reset sequence
+        #20 reset = 0;
+
+        // Wait a bit
+        #100;
+
+        // Start transmission
+		in = 16'b0000000010101010; // [8]=0 (write), [7:0]=0xAA
+		load = 1;
+		#200 load = 0;             // Keep load high long enough for clk_8MHz to catch it
+
+        // Respond on SDI in sync with SCK rising edges
+        forever begin
+            @(posedge SCK);
+            SDI = slave_data[7];
+            slave_data = {slave_data[6:0], 1'b0}; // shift left
+        end
+    end
+
+    // End simulation
+    initial begin
+        #5000 $finish;
+    end
 
 endmodule

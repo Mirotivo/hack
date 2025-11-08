@@ -64,7 +64,7 @@ module CPU(
     );
 
     // ALU input selection for y
-    Mux16 Mux16 (
+    Mux16 mux16_alu_y (
         .a(a_out),
         .b(inM),
         .sel(a),
@@ -72,7 +72,7 @@ module CPU(
     );
  
     // ALU module instantiation
-    ALU ALU (
+    ALU alu_inst (
         .x(d_out),
         .y(alu_input_y),
         .zx(c[5]),
@@ -86,19 +86,22 @@ module CPU(
         .ng(ng)
     );
 
+    // Clock enable timing parameter
+    localparam CLK_COUNT_WRITE = 10;
+    
     always @(posedge CLK_100MHz) begin
-        // A register
-        if (loadA && (CLK_COUNT == 10 && CLK_CPU == 1'b1)) begin
+        // A register - write after CPU computation
+        if (loadA && (CLK_COUNT == CLK_COUNT_WRITE && CLK_CPU == 1'b1)) begin
             a_out <= (isAInstruction) ? instruction : alu_out;
         end
-        // D register
-        if (loadD && (CLK_COUNT == 10 && CLK_CPU == 1'b1)) begin
+        // D register - write after CPU computation
+        if (loadD && (CLK_COUNT == CLK_COUNT_WRITE && CLK_CPU == 1'b1)) begin
             d_out <= alu_out;
         end
     end
 
     // Program counter
-    PC PC_Register (
+    PC pc_register (
         .clk(CLK_CPU),
         .reset(reset),
         .load(loadPC),
