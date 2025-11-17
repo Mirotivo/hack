@@ -16,6 +16,7 @@ set_io TFT_RESET  2	# Reset pin - PIO3_1B - Extension Pin 7 (BH34R)
 set_io TFT_DC     3	# MOSI/SDI - data to display - PIO3_2A - Extension Pin 9 (BH34R)
 set_io TFT_SDI    4	# SPI Clock - PIO3_2B - Extension Pin 11 (BH34R)
 set_io TFT_SCK    7	# Data/Command select - PIO3_3A - Extension Pin 13 (BH34R)
+set_io TFT_DBG    8	# Debug - PIO3_3B - Extension Pin 15 (BH34R)
 
 # Note: Connect your ILI9341 display as follows:
 # - VCC        -> 3.3V
