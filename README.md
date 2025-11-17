@@ -86,6 +86,14 @@ The chips of our HACK computer (ALU, CPU, Register, Memory, IO-Devices) are impl
    make -j$(nproc)
    sudo make install
    ```
+   ```
+   git clone https://github.com/OLIMEX/iCE40HX1K-EVB.git
+
+   cd iCE40HX1K-EVB/programmer/iceprogduino
+   make
+   sudo make install
+   ```
+
 3. **Install PlatformIO**:
    ```sh
    platformio run

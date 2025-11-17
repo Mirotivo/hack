@@ -13,16 +13,16 @@ set_io LED[1] 51	# LED2 (Shows when chip selected) - Extension Pin 12
 # These map to UEXT connector or GPIO headers
 set_io TFT_CS     1	# Chip Select (CS) - PIO3_1A - Extension Pin 5 (BH34R)
 set_io TFT_RESET  2	# Reset pin - PIO3_1B - Extension Pin 7 (BH34R)
-set_io TFT_SDI    3	# MOSI/SDI - data to display - PIO3_2A - Extension Pin 9 (BH34R)
-set_io TFT_SCK    4	# SPI Clock - PIO3_2B - Extension Pin 11 (BH34R)
-set_io TFT_DC     7	# Data/Command select - PIO3_3A - Extension Pin 13 (BH34R)
+set_io TFT_DC     3	# MOSI/SDI - data to display - PIO3_2A - Extension Pin 9 (BH34R)
+set_io TFT_SDI    4	# SPI Clock - PIO3_2B - Extension Pin 11 (BH34R)
+set_io TFT_SCK    7	# Data/Command select - PIO3_3A - Extension Pin 13 (BH34R)
 
 # Note: Connect your ILI9341 display as follows:
-# - TFT_CS     -> Display CS pin
-# - TFT_RESET  -> Display RESET pin  
-# - TFT_SDI    -> Display SDI/MOSI pin
-# - TFT_SCK    -> Display SCK pin
-# - TFT_DC     -> Display DC pin (Data/Command)
 # - VCC        -> 3.3V
 # - GND        -> GND
+# - TFT_CS     -> Display CS pin
+# - TFT_RESET  -> Display RESET pin  
+# - TFT_DC     -> Display DC pin (Data/Command)
+# - TFT_SDI    -> Display SDI/MOSI pin
+# - TFT_SCK    -> Display SCK pin
 # - LED        -> 3.3V (backlight, may need resistor)

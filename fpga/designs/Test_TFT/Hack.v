@@ -5,7 +5,7 @@
 
 /**
  * ============================================================================
- * ILI9341 TFT Display Driver - Simple initialization sequence
+ * Main Module - ILI9341 TFT Display Initialization and Clear Screen
  * ============================================================================
  */
 module Hack (
@@ -17,34 +17,672 @@ module Hack (
     output TFT_RESET,
     output TFT_SDI,
     output TFT_SCK,
-    output reg TFT_DC
+    output TFT_DC
 );
 
-    // Clock divider: 100MHz -> 1MHz for SPI communication
-    wire clk_spi;
-    wire [31:0] clk_count;
-    
-    CLK_Divider clk_div (
+    // ========================================================================
+    // Clock Dividers - Create clocks for state machine and SPI
+    // ========================================================================
+    // State machine clock: 1kHz (for timing delays)
+    wire clk_state;
+    CLK_Divider clk_div_state (
         .clk_in(CLK_100MHz),
-        .divisor(32'd49),  // 100MHz / (2 * 50) = 1MHz
-        // .divisor(32'd4999999),  // 100MHz / (2 * 5000000) = 10Hz
+        .divisor(32'd49999),  // 100MHz / (2 * 50000) = 1kHz (1ms per tick)
+        .clk_out(clk_state),
+        .clk_count()
+    );
+    
+    // SPI clock: 10MHz (for fast SPI communication with ILI9341)
+    wire clk_spi;
+    CLK_Divider clk_div_spi (
+        .clk_in(CLK_100MHz),
+        .divisor(32'd4),  // 100MHz / (2 * 5) = 10MHz -> SPI SCK = 5MHz
         .clk_out(clk_spi),
-        .clk_count(clk_count)
+        .clk_count()
     );
 
-    // TFT Control - Hardware reset
-    reg tft_reset = 0;
-    assign TFT_RESET = tft_reset;
-    
-    // SPI signals
-    reg spi_load = 0;
+    // ========================================================================
+    // State Machine Definitions
+    // ========================================================================
+    localparam RESET_LOW         = 8'd0;
+    localparam RESET_HIGH        = 8'd1;
+    localparam SEND_SWRESET_CMD  = 8'd2;
+    localparam WAIT_SWRESET      = 8'd3;
+    localparam SEND_DISPOFF_CMD  = 8'd4;
+    localparam WAIT_DISPOFF      = 8'd5;
+    localparam SEND_PWCTRL1_CMD  = 8'd6;
+    localparam SEND_PWCTRL1_DATA = 8'd7;
+    localparam WAIT_PWCTRL1      = 8'd8;
+    localparam SEND_PWCTRL2_CMD  = 8'd9;
+    localparam SEND_PWCTRL2_DATA = 8'd10;
+    localparam WAIT_PWCTRL2      = 8'd11;
+    localparam SEND_VCCR1_CMD    = 8'd12;
+    localparam SEND_VCCR1_DATA1  = 8'd13;
+    localparam SEND_VCCR1_DATA2  = 8'd14;
+    localparam WAIT_VCCR1        = 8'd15;
+    localparam SEND_VCCR2_CMD    = 8'd16;
+    localparam SEND_VCCR2_DATA   = 8'd17;
+    localparam WAIT_VCCR2        = 8'd18;
+    localparam SEND_MADCTL_CMD   = 8'd19;
+    localparam SEND_MADCTL_DATA  = 8'd20;
+    localparam WAIT_MADCTL       = 8'd21;
+    localparam SEND_COLMOD_CMD   = 8'd22;
+    localparam SEND_COLMOD_DATA  = 8'd23;
+    localparam WAIT_COLMOD       = 8'd24;
+    localparam SEND_FRMCRN1_CMD  = 8'd25;
+    localparam SEND_FRMCRN1_DATA1= 8'd26;
+    localparam SEND_FRMCRN1_DATA2= 8'd27;
+    localparam WAIT_FRMCRN1      = 8'd28;
+    localparam SEND_ETMOD_CMD    = 8'd29;
+    localparam SEND_ETMOD_DATA   = 8'd30;
+    localparam WAIT_ETMOD        = 8'd31;
+    localparam SEND_SLPOUT_CMD   = 8'd32;
+    localparam WAIT_SLPOUT       = 8'd33;
+    localparam SEND_CASET_CMD    = 8'd34;
+    localparam SEND_CASET_DATA1  = 8'd35;
+    localparam SEND_CASET_DATA2  = 8'd36;
+    localparam SEND_CASET_DATA3  = 8'd37;
+    localparam SEND_CASET_DATA4  = 8'd38;
+    localparam WAIT_CASET        = 8'd39;
+    localparam SEND_PASET_CMD    = 8'd40;
+    localparam SEND_PASET_DATA1  = 8'd41;
+    localparam SEND_PASET_DATA2  = 8'd42;
+    localparam SEND_PASET_DATA3  = 8'd43;
+    localparam SEND_PASET_DATA4  = 8'd44;
+    localparam WAIT_PASET        = 8'd45;
+    localparam SEND_DISPON_CMD   = 8'd46;
+    localparam WAIT_DISPON       = 8'd47;
+    localparam SEND_RAMWR_CMD    = 8'd48;
+    localparam WAIT_RAMWR        = 8'd49;
+    localparam SEND_PIXEL_HIGH   = 8'd50;
+    localparam SEND_PIXEL_LOW    = 8'd51;
+    localparam WAIT_PIXEL        = 8'd52;
+    localparam DONE              = 8'd53;
+
+    // ========================================================================
+    // Registers and Wires
+    // ========================================================================
+    reg [7:0] state = RESET_LOW;
+    reg [15:0] delay_counter = 0;  // For timing delays (at 1kHz clock)
+    reg [31:0] pixel_counter = 0;
+    reg tft_reset_reg = 1;
+    reg tft_dc_reg = 0;
+    reg spi_enable = 0;
     reg [7:0] spi_data = 0;
     wire spi_busy;
     wire spi_csx;
     
+    // Display parameters
+    localparam TOTAL_PIXELS = 76800;  // 240 * 320
+    localparam COLOR_HIGH = 8'hF8;    // Red color RGB565 high byte
+    localparam COLOR_LOW  = 8'h00;    // Red color RGB565 low byte
+
+    // ========================================================================
+    // Main State Machine - Running on slow clock for timing control
+    // ========================================================================
+    always @(posedge clk_state) begin
+        case (state)
+            // ================================================================
+            // HARDWARE RESET SEQUENCE
+            // ================================================================
+            RESET_LOW: begin
+                tft_reset_reg <= 0;
+                spi_enable <= 0;
+                if (delay_counter >= 16'd10) begin  // 10ms at 1kHz
+                    state <= RESET_HIGH;
+                    delay_counter <= 0;
+                end else begin
+                    delay_counter <= delay_counter + 1;
+                end
+            end
+            
+            RESET_HIGH: begin
+                tft_reset_reg <= 1;
+                if (delay_counter >= 16'd200) begin  // 200ms at 1kHz
+                    state <= SEND_SWRESET_CMD;
+                    delay_counter <= 0;
+                end else begin
+                    delay_counter <= delay_counter + 1;
+                end
+            end
+
+            // ================================================================
+            // SOFTWARE RESET (0x01)
+            // ================================================================
+            SEND_SWRESET_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;  // Command mode
+                    spi_data <= 8'h01;
+                    spi_enable <= 1;
+                    state <= WAIT_SWRESET;
+                end
+            end
+            
+            WAIT_SWRESET: begin
+                if (spi_busy) begin
+                    spi_enable <= 0;
+                end
+                if (!spi_busy && !spi_enable) begin
+                    if (delay_counter >= 16'd50) begin  // 50ms delay
+                        state <= SEND_DISPOFF_CMD;
+                        delay_counter <= 0;
+                    end else begin
+                        delay_counter <= delay_counter + 1;
+                    end
+                end
+            end
+
+            // ================================================================
+            // DISPLAY OFF (0x28)
+            // ================================================================
+            SEND_DISPOFF_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h28;
+                    spi_enable <= 1;
+                    state <= WAIT_DISPOFF;
+                end
+            end
+            
+            WAIT_DISPOFF: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_PWCTRL1_CMD;
+                end
+            end
+
+            // ================================================================
+            // POWER CONTROL 1 (0xC0, 0x23)
+            // ================================================================
+            SEND_PWCTRL1_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'hC0;
+                    spi_enable <= 1;
+                    state <= SEND_PWCTRL1_DATA;
+                end
+            end
+            
+            SEND_PWCTRL1_DATA: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;  // Data mode
+                    spi_data <= 8'h23;
+                    spi_enable <= 1;
+                    state <= WAIT_PWCTRL1;
+                end
+            end
+            
+            WAIT_PWCTRL1: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_PWCTRL2_CMD;
+                end
+            end
+
+            // ================================================================
+            // POWER CONTROL 2 (0xC1, 0x10)
+            // ================================================================
+            SEND_PWCTRL2_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'hC1;
+                    spi_enable <= 1;
+                    state <= SEND_PWCTRL2_DATA;
+                end
+            end
+            
+            SEND_PWCTRL2_DATA: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h10;
+                    spi_enable <= 1;
+                    state <= WAIT_PWCTRL2;
+                end
+            end
+            
+            WAIT_PWCTRL2: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_VCCR1_CMD;
+                end
+            end
+
+            // ================================================================
+            // VCOM CONTROL 1 (0xC5, 0x2B, 0x2B)
+            // ================================================================
+            SEND_VCCR1_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'hC5;
+                    spi_enable <= 1;
+                    state <= SEND_VCCR1_DATA1;
+                end
+            end
+            
+            SEND_VCCR1_DATA1: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h2B;
+                    spi_enable <= 1;
+                    state <= SEND_VCCR1_DATA2;
+                end
+            end
+            
+            SEND_VCCR1_DATA2: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h2B;
+                    spi_enable <= 1;
+                    state <= WAIT_VCCR1;
+                end
+            end
+            
+            WAIT_VCCR1: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_VCCR2_CMD;
+                end
+            end
+
+            // ================================================================
+            // VCOM CONTROL 2 (0xC7, 0xC0)
+            // ================================================================
+            SEND_VCCR2_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'hC7;
+                    spi_enable <= 1;
+                    state <= SEND_VCCR2_DATA;
+                end
+            end
+            
+            SEND_VCCR2_DATA: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'hC0;
+                    spi_enable <= 1;
+                    state <= WAIT_VCCR2;
+                end
+            end
+            
+            WAIT_VCCR2: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_MADCTL_CMD;
+                end
+            end
+
+            // ================================================================
+            // MEMORY ACCESS CONTROL (0x36, 0x48)
+            // ================================================================
+            SEND_MADCTL_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h36;
+                    spi_enable <= 1;
+                    state <= SEND_MADCTL_DATA;
+                end
+            end
+            
+            SEND_MADCTL_DATA: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h48;
+                    spi_enable <= 1;
+                    state <= WAIT_MADCTL;
+                end
+            end
+            
+            WAIT_MADCTL: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_COLMOD_CMD;
+                end
+            end
+
+            // ================================================================
+            // PIXEL FORMAT SET (0x3A, 0x55) - RGB565
+            // ================================================================
+            SEND_COLMOD_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h3A;
+                    spi_enable <= 1;
+                    state <= SEND_COLMOD_DATA;
+                end
+            end
+            
+            SEND_COLMOD_DATA: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h55;
+                    spi_enable <= 1;
+                    state <= WAIT_COLMOD;
+                end
+            end
+            
+            WAIT_COLMOD: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_FRMCRN1_CMD;
+                end
+            end
+
+            // ================================================================
+            // FRAME RATE CONTROL (0xB1, 0x00, 0x1B)
+            // ================================================================
+            SEND_FRMCRN1_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'hB1;
+                    spi_enable <= 1;
+                    state <= SEND_FRMCRN1_DATA1;
+                end
+            end
+            
+            SEND_FRMCRN1_DATA1: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h00;
+                    spi_enable <= 1;
+                    state <= SEND_FRMCRN1_DATA2;
+                end
+            end
+            
+            SEND_FRMCRN1_DATA2: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h1B;
+                    spi_enable <= 1;
+                    state <= WAIT_FRMCRN1;
+                end
+            end
+            
+            WAIT_FRMCRN1: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_ETMOD_CMD;
+                end
+            end
+
+            // ================================================================
+            // ENTRY MODE SET (0xB7, 0x07)
+            // ================================================================
+            SEND_ETMOD_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'hB7;
+                    spi_enable <= 1;
+                    state <= SEND_ETMOD_DATA;
+                end
+            end
+            
+            SEND_ETMOD_DATA: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h07;
+                    spi_enable <= 1;
+                    state <= WAIT_ETMOD;
+                end
+            end
+            
+            WAIT_ETMOD: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_SLPOUT_CMD;
+                end
+            end
+
+            // ================================================================
+            // SLEEP OUT (0x11)
+            // ================================================================
+            SEND_SLPOUT_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h11;
+                    spi_enable <= 1;
+                    state <= WAIT_SLPOUT;
+                end
+            end
+            
+            WAIT_SLPOUT: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    if (delay_counter >= 16'd150) begin  // 150ms delay
+                        state <= SEND_CASET_CMD;
+                        delay_counter <= 0;
+                    end else begin
+                        delay_counter <= delay_counter + 1;
+                    end
+                end
+            end
+
+            // ================================================================
+            // COLUMN ADDRESS SET (0x2A, 0x00, 0x00, 0x00, 0xEF) - 0 to 239
+            // ================================================================
+            SEND_CASET_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h2A;
+                    spi_enable <= 1;
+                    state <= SEND_CASET_DATA1;
+                end
+            end
+            
+            SEND_CASET_DATA1: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h00;
+                    spi_enable <= 1;
+                    state <= SEND_CASET_DATA2;
+                end
+            end
+            
+            SEND_CASET_DATA2: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h00;
+                    spi_enable <= 1;
+                    state <= SEND_CASET_DATA3;
+                end
+            end
+            
+            SEND_CASET_DATA3: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h00;
+                    spi_enable <= 1;
+                    state <= SEND_CASET_DATA4;
+                end
+            end
+            
+            SEND_CASET_DATA4: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'hEF;  // 239
+                    spi_enable <= 1;
+                    state <= WAIT_CASET;
+                end
+            end
+            
+            WAIT_CASET: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_PASET_CMD;
+                end
+            end
+
+            // ================================================================
+            // PAGE ADDRESS SET (0x2B, 0x00, 0x00, 0x01, 0x3F) - 0 to 319
+            // ================================================================
+            SEND_PASET_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h2B;
+                    spi_enable <= 1;
+                    state <= SEND_PASET_DATA1;
+                end
+            end
+            
+            SEND_PASET_DATA1: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h00;
+                    spi_enable <= 1;
+                    state <= SEND_PASET_DATA2;
+                end
+            end
+            
+            SEND_PASET_DATA2: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h00;
+                    spi_enable <= 1;
+                    state <= SEND_PASET_DATA3;
+                end
+            end
+            
+            SEND_PASET_DATA3: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h01;
+                    spi_enable <= 1;
+                    state <= SEND_PASET_DATA4;
+                end
+            end
+            
+            SEND_PASET_DATA4: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= 8'h3F;  // 319
+                    spi_enable <= 1;
+                    state <= WAIT_PASET;
+                end
+            end
+            
+            WAIT_PASET: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_DISPON_CMD;
+                end
+            end
+
+            // ================================================================
+            // DISPLAY ON (0x29)
+            // ================================================================
+            SEND_DISPON_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h29;
+                    spi_enable <= 1;
+                    state <= WAIT_DISPON;
+                end
+            end
+            
+            WAIT_DISPON: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    if (delay_counter >= 16'd200) begin  // 200ms delay
+                        state <= SEND_RAMWR_CMD;
+                        delay_counter <= 0;
+                    end else begin
+                        delay_counter <= delay_counter + 1;
+                    end
+                end
+            end
+
+            // ================================================================
+            // CLEAR SCREEN - MEMORY WRITE (0x2C)
+            // ================================================================
+            SEND_RAMWR_CMD: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 0;
+                    spi_data <= 8'h2C;
+                    spi_enable <= 1;
+                    state <= WAIT_RAMWR;
+                    pixel_counter <= 0;
+                end
+            end
+            
+            WAIT_RAMWR: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    state <= SEND_PIXEL_HIGH;
+                end
+            end
+
+            // ================================================================
+            // SEND PIXEL DATA (76,800 pixels in RGB565 format)
+            // ================================================================
+            SEND_PIXEL_HIGH: begin
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;  // Data mode
+                    spi_data <= COLOR_HIGH;
+                    spi_enable <= 1;
+                    state <= SEND_PIXEL_LOW;
+                end
+            end
+            
+            SEND_PIXEL_LOW: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    tft_dc_reg <= 1;
+                    spi_data <= COLOR_LOW;
+                    spi_enable <= 1;
+                    state <= WAIT_PIXEL;
+                end
+            end
+            
+            WAIT_PIXEL: begin
+                if (spi_busy) spi_enable <= 0;
+                if (!spi_busy && !spi_enable) begin
+                    pixel_counter <= pixel_counter + 1;
+                    if (pixel_counter >= TOTAL_PIXELS - 1) begin
+                        state <= DONE;
+                    end else begin
+                        state <= SEND_PIXEL_HIGH;
+                    end
+                end
+            end
+
+            // ================================================================
+            // DONE - Initialization and Clear Screen Complete
+            // ================================================================
+            DONE: begin
+                // Stay here - display should show red screen
+                spi_enable <= 0;
+            end
+
+            default: begin
+                state <= RESET_LOW;
+            end
+        endcase
+    end
+    
+    // ========================================================================
+    // SPI Controller Instance - Running on fast clock for SPI communication
+    // ========================================================================
     SPI spi (
-        .clk(clk_spi),
-        .load(spi_load),
+        .clk(clk_spi),   // Using 10MHz clock -> SPI SCK = 5MHz
+        .load(spi_enable),
         .in(spi_data),
         .SCK(TFT_SCK),
         .SDI(TFT_SDI),
@@ -52,209 +690,15 @@ module Hack (
         .busy(spi_busy)
     );
     
+    // ========================================================================
+    // Output Assignments
+    // ========================================================================
+    assign TFT_RESET = tft_reset_reg;
+    assign TFT_DC = tft_dc_reg;
     assign TFT_CS = spi_csx;
     
-    // State machine
-    localparam RESET_LOW = 0;
-    localparam RESET_HIGH = 1;
-    localparam LOAD = 2;
-    localparam SEND = 3;
-    localparam WAIT = 4;
-    localparam NEXT = 5;
-    
-    reg [2:0] state = RESET_LOW;
-    reg [7:0] step = 0;  // Current initialization step
-    reg [31:0] delay_counter = 0;  // For delays between commands
-    reg init_done = 0;  // Flag to indicate initialization is complete
-    reg pixel_byte = 0;  // Track which byte of pixel we're sending (0=high, 1=low)
-    
-    // Main state machine
-    always @(posedge clk_spi) begin
-        case (state)
-            RESET_LOW: begin
-                // Pull RESET low for at least 10ms
-                tft_reset <= 0;
-                delay_counter <= 10000;  // 10ms at 1MHz
-                spi_load <= 0;
-                if (delay_counter == 0) begin
-                    state <= RESET_HIGH;
-                    delay_counter <= 120000;  // 120ms delay after reset
-                end else begin
-                    delay_counter <= delay_counter - 1;
-                end
-            end
-            
-            RESET_HIGH: begin
-                // Pull RESET high and wait
-                tft_reset <= 1;
-                if (delay_counter == 0) begin
-                    state <= LOAD;
-                end else begin
-                    delay_counter <= delay_counter - 1;
-                end
-            end
-            
-            LOAD: begin
-                // Load command or data based on current step
-                delay_counter <= 0;  // Reset delay for next command
-                
-                case (step)
-                    // Software Reset
-                    0: begin TFT_DC <= 0; spi_data <= 8'h01; delay_counter <= 150000; end  // CMD: SWRESET (needs 150ms delay)
-                    
-                    // Power Control A
-                    1: begin TFT_DC <= 0; spi_data <= 8'hCB; end  // CMD: Power control A
-                    2: begin TFT_DC <= 1; spi_data <= 8'h39; end  // DATA
-                    3: begin TFT_DC <= 1; spi_data <= 8'h2C; end  // DATA
-                    4: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA
-                    5: begin TFT_DC <= 1; spi_data <= 8'h34; end  // DATA
-                    6: begin TFT_DC <= 1; spi_data <= 8'h02; end  // DATA
-                    
-                    // Power Control B
-                    7:  begin TFT_DC <= 0; spi_data <= 8'hCF; end  // CMD: Power control B
-                    8:  begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA
-                    9:  begin TFT_DC <= 1; spi_data <= 8'hC1; end  // DATA
-                    10: begin TFT_DC <= 1; spi_data <= 8'h30; end  // DATA
-                    
-                    // Driver Timing Control A
-                    11: begin TFT_DC <= 0; spi_data <= 8'hE8; end  // CMD
-                    12: begin TFT_DC <= 1; spi_data <= 8'h85; end  // DATA
-                    13: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA
-                    14: begin TFT_DC <= 1; spi_data <= 8'h78; end  // DATA
-                    
-                    // Power on Sequence Control
-                    15: begin TFT_DC <= 0; spi_data <= 8'hED; end  // CMD
-                    16: begin TFT_DC <= 1; spi_data <= 8'h64; end  // DATA
-                    17: begin TFT_DC <= 1; spi_data <= 8'h03; end  // DATA
-                    18: begin TFT_DC <= 1; spi_data <= 8'h12; end  // DATA
-                    19: begin TFT_DC <= 1; spi_data <= 8'h81; end  // DATA
-                    
-                    // Pump Ratio Control
-                    20: begin TFT_DC <= 0; spi_data <= 8'hF7; end  // CMD
-                    21: begin TFT_DC <= 1; spi_data <= 8'h20; end  // DATA
-                    
-                    // Power Control 1
-                    22: begin TFT_DC <= 0; spi_data <= 8'hC0; end  // CMD
-                    23: begin TFT_DC <= 1; spi_data <= 8'h23; end  // DATA: VRH[5:0]
-                    
-                    // Power Control 2
-                    24: begin TFT_DC <= 0; spi_data <= 8'hC1; end  // CMD
-                    25: begin TFT_DC <= 1; spi_data <= 8'h10; end  // DATA: SAP[2:0];BT[3:0]
-                    
-                    // VCOM Control 1
-                    26: begin TFT_DC <= 0; spi_data <= 8'hC5; end  // CMD
-                    27: begin TFT_DC <= 1; spi_data <= 8'h3E; end  // DATA
-                    28: begin TFT_DC <= 1; spi_data <= 8'h28; end  // DATA
-                    
-                    // VCOM Control 2
-                    29: begin TFT_DC <= 0; spi_data <= 8'hC7; end  // CMD
-                    30: begin TFT_DC <= 1; spi_data <= 8'h86; end  // DATA
-                    
-                    // Memory Access Control
-                    31: begin TFT_DC <= 0; spi_data <= 8'h36; end  // CMD: MADCTL
-                    32: begin TFT_DC <= 1; spi_data <= 8'h08; end  // DATA: Try standard rotation with BGR
-                    
-                    // Pixel Format
-                    33: begin TFT_DC <= 0; spi_data <= 8'h3A; end  // CMD: COLMOD
-                    34: begin TFT_DC <= 1; spi_data <= 8'h55; end  // DATA: 16-bit/pixel
-                    
-                    // Frame Rate Control
-                    35: begin TFT_DC <= 0; spi_data <= 8'hB1; end  // CMD
-                    36: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA
-                    37: begin TFT_DC <= 1; spi_data <= 8'h18; end  // DATA
-                    
-                    // Display Function Control
-                    38: begin TFT_DC <= 0; spi_data <= 8'hB6; end  // CMD
-                    39: begin TFT_DC <= 1; spi_data <= 8'h08; end  // DATA
-                    40: begin TFT_DC <= 1; spi_data <= 8'h82; end  // DATA
-                    41: begin TFT_DC <= 1; spi_data <= 8'h27; end  // DATA
-                    
-                    // Sleep Out
-                    42: begin TFT_DC <= 0; spi_data <= 8'h11; delay_counter <= 120000; end  // CMD: Sleep Out (needs 120ms delay)
-                    
-                    // Display ON
-                    43: begin TFT_DC <= 0; spi_data <= 8'h29; delay_counter <= 50000; end  // CMD: Display ON (needs 50ms delay)
-                    
-                    // Column Address Set (0 to 239)
-                    44: begin TFT_DC <= 0; spi_data <= 8'h2A; end  // CMD: CASET
-                    45: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA: Start high
-                    46: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA: Start low
-                    47: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA: End high
-                    48: begin TFT_DC <= 1; spi_data <= 8'hEF; end  // DATA: End low (239)
-                    
-                    // Page Address Set (0 to 319)
-                    49: begin TFT_DC <= 0; spi_data <= 8'h2B; end  // CMD: PASET
-                    50: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA: Start high
-                    51: begin TFT_DC <= 1; spi_data <= 8'h00; end  // DATA: Start low
-                    52: begin TFT_DC <= 1; spi_data <= 8'h01; end  // DATA: End high
-                    53: begin TFT_DC <= 1; spi_data <= 8'h3F; end  // DATA: End low (319)
-                    
-                    // Memory Write
-                    54: begin TFT_DC <= 0; spi_data <= 8'h2C; end  // CMD: Memory Write
-                    
-                    // Now send pixel data - Blue color (0x001F in RGB565)
-                    // For 16-bit RGB565: High byte = R[4:0]G[5:3], Low byte = G[2:0]B[4:0]
-                    // Blue: R=0, G=0, B=31 -> High=0x00, Low=0x1F
-                    default: begin 
-                        if (step >= 55) begin
-                            // Keep sending blue pixels
-                            TFT_DC <= 1; 
-                            spi_data <= pixel_byte ? 8'h1F : 8'h00;  // Alternate: high byte 0x00, low byte 0x1F
-                        end
-                    end
-                endcase
-                
-                spi_load <= 1;
-                state <= SEND;
-            end
-            
-            SEND: begin
-                // Wait for SPI to accept
-                if (spi_busy) begin
-                    spi_load <= 0;
-                end
-                
-                // Wait for transmission to complete
-                if (!spi_busy && !spi_load) begin
-                    if (delay_counter > 0) begin
-                        state <= WAIT;
-                    end else begin
-                        state <= NEXT;
-                    end
-                end
-            end
-            
-            WAIT: begin
-                // Wait for required delay
-                if (delay_counter > 0) begin
-                    delay_counter <= delay_counter - 1;
-                end else begin
-                    state <= NEXT;
-                end
-            end
-            
-            NEXT: begin
-                if (step < 55) begin
-                    // Normal initialization sequence
-                    step <= step + 1;
-                    pixel_byte <= 0;
-                end else begin
-                    // Pixel data phase - stay at step 55 and toggle pixel_byte
-                    if (!init_done) begin
-                        init_done <= 1;
-                    end
-                    step <= 55;
-                    pixel_byte <= ~pixel_byte;  // Toggle between high and low byte
-                end
-                state <= LOAD;
-            end
-            
-            default: state <= RESET_LOW;
-        endcase
-    end
-    
     // LED indicators
-    assign LED[0] = spi_busy;
-    assign LED[1] = TFT_DC;
+    assign LED[0] = (state == DONE);           // LED0: Initialization complete
+    assign LED[1] = spi_busy;                  // LED1: SPI transmission active
 
 endmodule
