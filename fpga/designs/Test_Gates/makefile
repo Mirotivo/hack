@@ -18,7 +18,7 @@ all: $(PROJ).rpt $(PROJ).bin
 	icetime -d $(DEVICE) -mtr $@ $<
 
 prog: $(PROJ).bin
-	../../../tools/winiceprogduino/winiceprogduino.exe -I COM8 $<
+	../../../tools/winiceprogduino/winiceprogduino.exe -I COM4 $<
 
 clean:
 	rm -f $(PROJ).blif $(PROJ).asc $(PROJ).bin

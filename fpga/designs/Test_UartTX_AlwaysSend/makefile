@@ -38,7 +38,7 @@ view: $(OUTPUT_VCD)
 	gtkwave $(OUTPUT_VCD)
 
 prog: assemble $(PROJ).bin
-	../../../tools/winiceprogduino/winiceprogduino.exe -I COM8 $(PROJ).bin
+	../../../tools/winiceprogduino/winiceprogduino.exe -I COM4 $(PROJ).bin
 
 clean:
 	rm -f  *.hack *.blif *.asc *.bin   *.vvp *.vcd *.out
