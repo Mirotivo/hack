@@ -4,6 +4,7 @@
 tools/*
 !tools/IDE/
 !tools/IDE/**
+*.pyc
 *.log
 *.rpt
 *.asc

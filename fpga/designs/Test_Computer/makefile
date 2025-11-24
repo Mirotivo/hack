@@ -19,6 +19,7 @@ view: $(PROJ).vcd
 assemble:
 	$(MAKE) -C programs clean
 	$(MAKE) -C programs
+# 	python3 ../../../tools/IDE/main.py "assemble" programs/bluescreen.asm
 	@bash -c 'read -p "Press enter to continue..."'
 
 
@@ -40,6 +41,6 @@ prog: assemble $(PROJ).bin
 
 clean:
 	rm -f *.blif *.asc *.bin *.vvp *.vcd *.out programs/*.hex programs/*.hack programs/*.vm
-	find programs -type f -name '*.asm' ! -name 'echo.asm' ! -name 'helloworld.asm' ! -name 'Sys.asm' -delete
+	find programs -type f -name '*.asm' ! -name 'echo.asm' ! -name 'helloworld.asm' ! -name 'bluescreen.asm' ! -name 'Sys.asm' -delete
 
 .PHONY: all clean prog sim view assemble prog

@@ -28,4 +28,5 @@
 `include "../../modules/UartTX.v"
 `include "../../modules/SPI.v"
 `include "../../modules/I2C.v"
+`include "../../modules/LCD.v"
 `include "../../modules/MemoryMappedIO.v"

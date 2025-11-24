@@ -13,7 +13,9 @@ set_io LED[1] 51	# LED2
 set_io UART_RX 36	# PIO2_8/RxD connected to pin 3 of UEXT (PGM)
 set_io UART_TX 37	# PIO2_9/TxD connected to pin 4 of UEXT (PGM)
 
-set_io SPI_SDO  45	# iCE40-SDO
-set_io SPI_SDI	46	# iCE40-SDI
-set_io SPI_SCK  48	# iCE40-SCK
-set_io SPI_CSX  49	# iCE40-SS_B
+# ILI9341 TFT Display pins - Using GPIO extension pins
+set_io TFT_CS     1	# Chip Select - PIO3_1A - Extension Pin 5 (BH34R)
+set_io TFT_RESET  2	# Reset pin - PIO3_1B - Extension Pin 7 (BH34R)
+set_io TFT_DC     3	# Data/Command select - PIO3_2A - Extension Pin 9 (BH34R)
+set_io TFT_SDI    4	# MOSI/SDI (data to display) - PIO3_2B - Extension Pin 11 (BH34R)
+set_io TFT_SCK    7	# SPI Clock - PIO3_3A - Extension Pin 13 (BH34R)

@@ -10,7 +10,9 @@
  * 2049    | but
  * 2050    | UART_RX
  * 2051    | UART_TX
- * 2052    | SPI
+ * 2053    | LCD_DATA - Write 8-bit data byte
+ * 2054    | LCD_CMD - Write 8-bit command byte
+ * 2055    | LCD_STATUS - Read: bit[0]=ready, bit[1]=busy
  *
  * WRITE:
  * When load is set to 1, 16 bit dataW are stored to Memory address
@@ -39,11 +41,12 @@ module MemoryMappedIO(
     // UART Interface
     input wire UART_RX,
     output wire UART_TX,
-    // SPI Interface
-    output wire SPI_SDO,
-    input wire SPI_SDI,
-    output wire SPI_SCK,
-    output wire SPI_CSX
+    // LCD Interface
+    output wire TFT_CS,
+    output wire TFT_RESET,
+    output wire TFT_SDI,
+    output wire TFT_SCK,
+    output wire TFT_DC
 );
 
     // Address range parameters
@@ -52,7 +55,9 @@ module MemoryMappedIO(
     localparam ADDR_BUTTON    = 2049;
     localparam ADDR_UART_RX   = 2050;
     localparam ADDR_UART_TX   = 2051;
-    localparam ADDR_SPI       = 2052;
+    localparam ADDR_LCD_DATA  = 2053;
+    localparam ADDR_LCD_CMD   = 2054;
+    localparam ADDR_LCD_STATUS = 2055;
     
     // Clock enable timing parameter
     localparam CLK_COUNT_WRITE = 10;
@@ -73,10 +78,13 @@ module MemoryMappedIO(
     wire uartTxBusy;
     wire uartRxReady;
 
-    // SPI control and status
-    reg spiLoad;
-    reg [15:0] spiDataIn;
-    wire [15:0] spiDataOut;
+    // LCD control and status
+    reg lcdLoad;
+    reg [7:0] lcdData;
+    reg lcdIsCmd;
+    wire lcdBusy;
+    wire lcdReady;
+    reg lcdLoadPending;  // Track if we've already sent a load pulse
 
     // Instantiate Memory module for addresses 0 to 2047
     Memory memory_inst (
@@ -107,17 +115,19 @@ module MemoryMappedIO(
         .rx_ready(uartRxReady)
     );
 
-    // Instantiate SPI module
-    SPI spi_inst (
+    // Instantiate LCD module
+    LCD lcd_inst (
         .CLK_100MHz(CLK_100MHz),
-        .reset(1'b0), // Assume reset is not needed for now
-        .load(spiLoad),
-        .in(spiDataIn),
-        .out(spiDataOut),
-        .CSX(SPI_CSX),
-        .SDO(SPI_SDO),
-        .SDI(SPI_SDI),
-        .SCK(SPI_SCK)
+        .load(lcdLoad),
+        .data_in(lcdData),
+        .is_cmd(lcdIsCmd),
+        .TFT_CS(TFT_CS),
+        .TFT_RESET(TFT_RESET),
+        .TFT_SDI(TFT_SDI),
+        .TFT_SCK(TFT_SCK),
+        .TFT_DC(TFT_DC),
+        .busy(lcdBusy),
+        .ready(lcdReady)
     );
 
     // Initialize registers
@@ -128,16 +138,24 @@ module MemoryMappedIO(
         uartTxBuffer = 16'b0;
         uartRxClear = 1'b0;
         uartRxData = 16'b0;
-        spiLoad = 1'b0;
-        spiDataIn = 16'b0;
+        lcdLoad = 1'b0;
+        lcdData = 8'b0;
+        lcdIsCmd = 1'b0;
+        lcdLoadPending = 1'b0;
         led = 2'b0;
     end
 
     always @(posedge CLK_100MHz) begin
         // Default values for control signals
         uartTxLoad <= 1'b0;
-        spiLoad <= 1'b0;
         uartRxClear <= 1'b0;
+        
+        // LCD handshake: clear load after LCD acknowledges by setting busy
+        if (lcdBusy && lcdLoadPending) begin
+            lcdLoad <= 1'b0;
+            lcdLoadPending <= 1'b0;
+        end
+        
         if (uartRxReady) begin
             uartRxData <= uartRxOut;
             uartRxClear <= 1'b1;
@@ -149,7 +167,7 @@ module MemoryMappedIO(
                  (address == ADDR_BUTTON) ? regButton :
                  (address == ADDR_UART_RX) ? uartRxData :
                  (address == ADDR_UART_TX) ? (uartTxBusy ? 16'hFFFF : 16'h0000) :
-                 (address == ADDR_SPI) ? spiDataOut :
+                 (address == ADDR_LCD_STATUS) ? {14'b0, lcdBusy, lcdReady} :
                  16'h0000;
 
         // Write operation - synchronized with CPU clock
@@ -160,25 +178,36 @@ module MemoryMappedIO(
                 case (address)
                     ADDR_LED: regLED <= dataW;
                     ADDR_BUTTON: regButton <= {14'b0, but};
-                    // ADDR_UART_RX: uartRxClear <= 1'b1;
                     ADDR_UART_TX: begin
                         if (!uartTxBusy) begin
                             uartTxLoad <= 1'b1;
                             uartTxBuffer <= dataW;
                         end
                     end
-                    ADDR_SPI: begin
-                        spiLoad <= 1'b1;
-                        spiDataIn <= dataW;
+                    ADDR_LCD_DATA: begin
+                        if (lcdReady && !lcdBusy && !lcdLoadPending) begin
+                            lcdData <= dataW[7:0];
+                            lcdIsCmd <= 1'b0;  // Data byte
+                            lcdLoad <= 1'b1;
+                            lcdLoadPending <= 1'b1;
+                        end
+                    end
+                    ADDR_LCD_CMD: begin
+                        if (lcdReady && !lcdBusy && !lcdLoadPending) begin
+                            lcdData <= dataW[7:0];
+                            lcdIsCmd <= 1'b1;  // Command byte
+                            lcdLoad <= 1'b1;
+                            lcdLoadPending <= 1'b1;
+                        end
                     end
                     default: ; // Do nothing for default case
                 endcase
             end
         end
 
-        // Update LEDs based on UART status flags
-        led[0] <= uartTxBusy; // LED0 indicates UART Tx busy status
-        led[1] <= uartRxReady; // LED1 indicates UART Rx ready status
+        // Update LEDs based on LCD status flags
+        led[0] <= lcdReady;  // LED0 indicates LCD ready status
+        led[1] <= lcdBusy;   // LED1 indicates LCD busy status
     end
 
 endmodule

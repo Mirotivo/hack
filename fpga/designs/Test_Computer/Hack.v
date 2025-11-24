@@ -4,6 +4,7 @@
 // `define ROMFILE "../designs/Test_Computer/programs/helloworld.hack"
 // `define ROMFILE "../designs/Test_Computer/programs/sys.hack"
 `define ROMFILE "../designs/Test_Computer/programs/combined.hack"
+// `define ROMFILE "../designs/Test_Computer/programs/bluescreen.hack"
 `include "include.v"
 /** 
  * The module hack is our top-level module
@@ -24,11 +25,12 @@ module Hack (
     input UART_RX,
     output UART_TX,
 
-    // SPI
-    output SPI_SDO,
-    input SPI_SDI,
-    output SPI_SCK,
-    output SPI_CSX
+    // LCD/TFT Display
+    output TFT_CS,
+    output TFT_RESET,
+    output TFT_SDI,
+    output TFT_SCK,
+    output TFT_DC
 );
     // Internal signals
     wire [15:0] pc;
@@ -49,11 +51,13 @@ module Hack (
     wire reset;
     assign reset = inv_0 | inv_1;
 
-    // Clock divider: 100MHz -> 1KHz
+    // Clock divider: 100MHz -> 50Hz
     // CLK_CPU acts as clock enable signal, not separate clock domain
+    // 50Hz = 20ms per instruction, slower than LCD (10ms per byte)
+    // This eliminates the need for busy-wait loops!
     CLK_Divider clk_divider_inst (
         .clk_in(CLK_100MHz),
-        .divisor(100000),  // Divide by 100000 to get 1 KHz
+        .divisor(2000000),  // Divide by 2,000,000 to get 50 Hz (20ms per instruction)
         .clk_out(CLK_CPU),
         .clk_count(CLK_COUNT)
     );
@@ -94,10 +98,11 @@ module Hack (
         .led(LED),
         .UART_RX(UART_RX),
         .UART_TX(UART_TX),
-        .SPI_SDO(SPI_SDO),
-        .SPI_SDI(SPI_SDI),
-        .SPI_SCK(SPI_SCK),
-        .SPI_CSX(SPI_CSX)
+        .TFT_CS(TFT_CS),
+        .TFT_RESET(TFT_RESET),
+        .TFT_SDI(TFT_SDI),
+        .TFT_SCK(TFT_SCK),
+        .TFT_DC(TFT_DC)
     );
 
 endmodule
