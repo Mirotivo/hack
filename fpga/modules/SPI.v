@@ -24,7 +24,7 @@ module SPI (
 
     // Parameters
     parameter CLK_FREQ = 100000000;      // 100 MHz
-    parameter SPI_FREQ = 1000;           // 1 MHz SPI (production speed)
+    parameter SPI_FREQ = 5000000;        // 5 MHz SPI (safe for ILI9341, well within 10-15MHz max)
     localparam SPI_PERIOD = CLK_FREQ / SPI_FREQ;
     localparam SPI_HALF_PERIOD = SPI_PERIOD / 2;  // For SCK toggle
     
