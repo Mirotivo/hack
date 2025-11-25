@@ -1,100 +1,89 @@
-// Blue Screen Test - Simplified for 50Hz CPU (20ms per instruction)
-// CPU is now slower than LCD (10ms per byte), so NO busy-wait loops needed!
-// LCD_DATA = 2053 (0x0805), LCD_CMD = 2054 (0x0806), LCD_STATUS = 2055 (0x0807)
-// RGB565 Blue = 0x001F (5 bits blue, full intensity)
+// Blue Screen Test - Full 240x320 display with nested loops
+// LCD_DATA=2053 (0x0805), LCD_CMD=2054 (0x0806), LCD_STATUS=2055 (0x0807)
 
-// Wait for LCD initialization (only needed at startup)
-// This is the ONLY wait loop needed because init takes 150ms
+// Wait for LCD ready
 (WAIT_READY)
-    @2055               // LCD_STATUS address (0x0807)
+    @2055
     D=M
-    @1                  // Mask for bit 0
-    D=D&A               // Mask bit 0 (ready flag)
+    @1
+    D=D&A
     @WAIT_READY
-    D;JEQ               // Loop while not ready
+    D;JEQ
 
-// Send Column Address Set command (CASET = 0x2A)
-@42                     // Command 0x2A (Column Address Set)
+// CMD: CASET (0x2A = 42)
+@42
 D=A
-@2054                   // LCD_CMD address (0x0806)
-M=D                     // CPU waits 20ms automatically (LCD needs 10ms)
-
-// Column start MSB: 0x00
-@2053                   // LCD_DATA address (0x0805)
-M=0                     // 0x00 (MSB of start column) - auto-waits 20ms
-
-// Column start LSB: 0x00
-@2053                   // LCD_DATA address (0x0805)
-M=0                     // 0x00 (LSB of start column = 0) - auto-waits 20ms
-
-// Column end MSB: 0x00
-@2053                   // LCD_DATA address (0x0805)
-M=0                     // 0x00 (MSB of end column) - auto-waits 20ms
-
-// Column end LSB: 0xEF (239 decimal)
-@239                    // 0xEF (239 decimal, end column)
-D=A
-@2053                   // LCD_DATA address (0x0805)
-M=D                     // auto-waits 20ms
-
-// Send Page Address Set command (PASET = 0x2B)
-@43                     // Command 0x2B (Page Address Set)
-D=A
-@2054                   // LCD_CMD address (0x0806)
-M=D                     // auto-waits 20ms
-
-// Page start MSB: 0x00
-@2053                   // LCD_DATA address (0x0805)
-M=0                     // 0x00 (MSB of start row) - auto-waits 20ms
-
-// Page start LSB: 0x00
-@2053                   // LCD_DATA address (0x0805)
-M=0                     // 0x00 (LSB of start row = 0) - auto-waits 20ms
-
-// Page end MSB: 0x01
-@2053                   // LCD_DATA address (0x0805)
-M=1                     // 0x01 (MSB of end row) - auto-waits 20ms
-
-// Page end LSB: 0x3F (63 decimal)
-@63                     // 0x3F (63 decimal, LSB of end row)
-D=A
-@2053                   // LCD_DATA address (0x0805)
-M=D                     // Total rows = 0x013F = 319 - auto-waits 20ms
-
-// Send Memory Write command (RAMWR = 0x2C)
-@44                     // Command 0x2C (Memory Write)
-D=A
-@2054                   // LCD_CMD address (0x0806)
-M=D                     // auto-waits 20ms
-
-// Initialize pixel counter: 10000 pixels = 0x2710
-@10000                  // 0x2710 (10000 decimal pixels)
-D=A
-@R0                     // Use R0 as counter
+@2054
 M=D
 
-// Stream pixels - RGB565 blue color (0x001F)
-// Each pixel = 2 bytes: high byte 0x00, low byte 0x1F
-// NO WAIT LOOPS NEEDED! CPU is slow enough :)
-(LOOP)
-    // Send blue high byte: 0x00
-    @2053               // LCD_DATA address (0x0805)
-    M=0                 // 0x00 (high byte) - CPU waits 20ms automatically
-    
-    // Send blue low byte: 0x1F (31 decimal)
-    @31                 // 0x1F (31 decimal, low byte of blue pixel)
+// DATA: Column 0-239 (0x00, 0x00, 0x00, 0xEF)
+@2053
+M=0
+@2053
+M=0
+@2053
+M=0
+@239                    // 0xEF
+D=A
+@2053
+M=D
+
+// CMD: PASET (0x2B = 43)
+@43
+D=A
+@2054
+M=D
+
+// DATA: Row 0-319 (0x00, 0x00, 0x01, 0x3F)
+@2053
+M=0
+@2053
+M=0
+@2053
+M=1
+@63                     // 0x3F (0x013F = 319)
+D=A
+@2053
+M=D
+
+// CMD: RAMWR (0x2C = 44)
+@44
+D=A
+@2054
+M=D
+
+// Nested loop: 300×256 = 76800 pixels (within 15-bit limit)
+@300                    // Outer counter
+D=A
+@R1
+M=D
+
+(OUTER_LOOP)
+    @256                // Inner counter
     D=A
-    @2053               // LCD_DATA address (0x0805)
-    M=D                 // CPU waits 20ms automatically
-    
-    // Decrement counter
     @R0
+    M=D
+    
+    (INNER_LOOP)
+        @2053       // DATA: high byte (0x00)
+        M=0
+        @31         // DATA: low byte (0x1F) - RGB565 blue
+        D=A
+        @2053
+        M=D
+        
+        @R0
+        M=M-1
+        D=M
+        @INNER_LOOP
+        D;JGT
+    
+    @R1
     M=M-1
     D=M
-    @LOOP
-    D;JGT               // Continue if counter > 0
+    @OUTER_LOOP
+    D;JGT
 
-// Done - infinite loop
 (END)
     @END
     0;JMP

@@ -30,7 +30,7 @@ module LCD (
 
     // Parameters
     parameter CLK_FREQ = 100000000;      // 100 MHz
-    parameter STATE_FREQ = 100;          // State machine frequency
+    parameter STATE_FREQ = 1000000;      // 1 MHz state machine (0.001ms per tick, 20x faster than 50kHz CPU)
     localparam STATE_PERIOD = CLK_FREQ / STATE_FREQ;
     
     // State machine states
@@ -70,7 +70,7 @@ module LCD (
 
     // Internal signals - State machine
     reg [5:0] state;
-    reg [15:0] delay_counter;
+    reg [17:0] delay_counter;  // Increased size to handle 1MHz tick rate delays (max 150000)
     reg [4:0] byte_index;
     
     // Internal signals - User data
@@ -86,7 +86,7 @@ module LCD (
     // Internal signals - State configuration
     reg [6:0] rom_start;
     reg [4:0] byte_count;
-    reg [8:0] delay_ms;
+    reg [17:0] delay_ms;  // Increased size for 1MHz tick rate delays
     reg [5:0] next_state_val;
 
     // Initialization ROM
@@ -187,13 +187,14 @@ module LCD (
 
     // Combinational logic
     
-    // State configuration table
+    // State configuration table  
+    // Values adjusted for 1MHz tick rate (0.001ms per tick)
     always @(*) begin
         case (state)
-            RESET_HIGH_1:      begin rom_start = 0; byte_count = 0; delay_ms = 5;   next_state_val = RESET_LOW; end
-            RESET_LOW:         begin rom_start = 0; byte_count = 0; delay_ms = 20;  next_state_val = RESET_HIGH_2; end
-            RESET_HIGH_2:      begin rom_start = 0; byte_count = 0; delay_ms = 150; next_state_val = SOFT_RESET; end
-            SOFT_RESET:        begin rom_start = 0; byte_count = 1; delay_ms = 150; next_state_val = DISPLAY_OFF; end
+            RESET_HIGH_1:      begin rom_start = 0; byte_count = 0; delay_ms = 5000;     next_state_val = RESET_LOW; end       // 5ms
+            RESET_LOW:         begin rom_start = 0; byte_count = 0; delay_ms = 20000;    next_state_val = RESET_HIGH_2; end    // 20ms
+            RESET_HIGH_2:      begin rom_start = 0; byte_count = 0; delay_ms = 150000;   next_state_val = SOFT_RESET; end      // 150ms
+            SOFT_RESET:        begin rom_start = 0; byte_count = 1; delay_ms = 150000;   next_state_val = DISPLAY_OFF; end     // 150ms
             DISPLAY_OFF:       begin rom_start = 0; byte_count = 1; delay_ms = 0;   next_state_val = POWER_CTRL_B; end
             POWER_CTRL_B:      begin rom_start = 0; byte_count = 6; delay_ms = 0;   next_state_val = POWER_CTRL_A; end
             POWER_CTRL_A:      begin rom_start = 6; byte_count = 4; delay_ms = 0;   next_state_val = DRIVER_TIMING_A; end
@@ -213,8 +214,8 @@ module LCD (
             GAMMA_SET:         begin rom_start = 46; byte_count = 2; delay_ms = 0;  next_state_val = POSITIVE_GAMMA; end
             POSITIVE_GAMMA:    begin rom_start = 48; byte_count = 16; delay_ms = 0; next_state_val = NEGATIVE_GAMMA; end
             NEGATIVE_GAMMA:    begin rom_start = 64; byte_count = 16; delay_ms = 0; next_state_val = SLEEP_OUT; end
-            SLEEP_OUT:         begin rom_start = 0; byte_count = 1; delay_ms = 120; next_state_val = DISPLAY_ON; end
-            DISPLAY_ON:        begin rom_start = 0; byte_count = 1; delay_ms = 100; next_state_val = INIT_COMPLETE; end
+            SLEEP_OUT:         begin rom_start = 0; byte_count = 1; delay_ms = 120000; next_state_val = DISPLAY_ON; end    // 120ms
+            DISPLAY_ON:        begin rom_start = 0; byte_count = 1; delay_ms = 100000; next_state_val = INIT_COMPLETE; end  // 100ms
             default:           begin rom_start = 0; byte_count = 0; delay_ms = 0;   next_state_val = IDLE; end
         endcase
     end
