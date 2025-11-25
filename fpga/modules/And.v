@@ -1,11 +1,21 @@
+/**
+ * The module And is a 1-bit AND gate
+ * Implements: OUT = A AND B
+ */
+`default_nettype none
 module And(
-	input a,
-	input b,
-	output out
+    // Data Interface
+    input A,
+    input B,
+    output OUT
 );
 
-	wire aNandb;
-	Nand Nand1(.a(a), .b(b), .out(aNandb));
-	Not Not1(.in(aNandb), .out(out));
+    // Internal signals
+    wire a_nand_b;
+
+    // Module instantiations
+    
+    Nand nand1(.A(A), .B(B), .OUT(a_nand_b));
+    Not not1(.IN(a_nand_b), .OUT(OUT));
 
 endmodule

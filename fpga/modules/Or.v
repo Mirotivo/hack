@@ -1,13 +1,25 @@
+/**
+ * The module Or is a 1-bit OR gate
+ * Implements: OUT = A OR B
+ */
+`default_nettype none
 module Or (
-    input a,
-    input b,
-    output out
+    // Data Interface
+    input A,
+    input B,
+    output OUT
 );
-	wire nota;
-	wire notb;
-	wire notab;
-    Not Not1(.in(a), .out(nota));
-	Not Not2(.in(b), .out(notb));
-	And And1(.a(nota), .b(notb), .out(notab));
-	Not Not3(.in(notab), .out(out));
+
+    // Internal signals
+    wire not_a;
+    wire not_b;
+    wire not_ab;
+
+    // Module instantiations
+    
+    Not not1(.IN(A), .OUT(not_a));
+    Not not2(.IN(B), .OUT(not_b));
+    And and1(.A(not_a), .B(not_b), .OUT(not_ab));
+    Not not3(.IN(not_ab), .OUT(OUT));
+
 endmodule

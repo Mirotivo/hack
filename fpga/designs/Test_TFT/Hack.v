@@ -1,20 +1,23 @@
+/**
+ * The module Hack is a TFT display test module
+ * Uses the LCD module to fill the screen with blue color
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * to test TFT/LCD functionality with the ILI9341 controller
+ */
 `default_nettype none
 
 `include "../../modules/SPI.v"
 `include "../../modules/LCD.v"
 
-/**
- * ============================================================================
- * Top Module - TFT Test with Abstracted LCD Module
- * ============================================================================
- * Uses the LCD module from fpga/modules/LCD.v which handles all initialization
- * This module only needs to send commands/data to fill the screen blue
- */
 module Hack (
+    // Clock
     input CLK_100MHz,
+
+    // GPIO (Buttons and LEDs)
     input [1:0] BUT,
     output [1:0] LED,
     
+    // LCD/TFT Display
     output TFT_CS,
     output TFT_RESET,
     output TFT_SDI,
@@ -23,47 +26,71 @@ module Hack (
     output TFT_DBG
 );
 
-    // ========================================================================
-    // Timing Configuration
-    // ========================================================================
-    parameter CLK_FREQ = 100000000;  // 100 MHz
-    parameter STATE_FREQ = 100;      // State machine frequency
+    // Parameters
+    parameter CLK_FREQ = 100000000;      // 100 MHz
+    parameter STATE_FREQ = 100;          // State machine frequency
     localparam STATE_PERIOD = CLK_FREQ / STATE_FREQ;
     
-    reg [31:0] clk_cycles = 0;
-    reg state_tick = 0;
-
-    // ========================================================================
-    // Application State Machine
-    // ========================================================================
-    localparam IDLE              = 6'd0;
-    localparam WAIT_LCD_READY    = 6'd1;
-    localparam SET_COLUMN_ADDR   = 6'd2;
-    localparam SET_PAGE_ADDR     = 6'd3;
-    localparam START_MEMORY_WRITE= 6'd4;
-    localparam STREAM_PIXELS     = 6'd5;
-    localparam FILL_COMPLETE     = 6'd6;
-
-    reg [5:0] state = IDLE;
-    reg [17:0] pixel_counter = 0;
-    reg [4:0] byte_index = 0;
+    // State machine states
+    localparam IDLE               = 6'd0;
+    localparam WAIT_LCD_READY     = 6'd1;
+    localparam SET_COLUMN_ADDR    = 6'd2;
+    localparam SET_PAGE_ADDR      = 6'd3;
+    localparam START_MEMORY_WRITE = 6'd4;
+    localparam STREAM_PIXELS      = 6'd5;
+    localparam FILL_COMPLETE      = 6'd6;
     
     localparam TOTAL_PIXELS = 76800;
     localparam COLOR_BLUE_H = 8'h00;
     localparam COLOR_BLUE_L = 8'h1F;
 
-    // ========================================================================
-    // LCD Module Interface
-    // ========================================================================
-    reg lcd_load = 0;
-    reg [7:0] lcd_data = 0;
-    reg lcd_is_cmd = 0;
+    // Internal signals - State machine
+    reg [5:0] state;
+    reg [31:0] clk_cycles;
+    reg state_tick;
+    reg [17:0] pixel_counter;
+    reg [4:0] byte_index;
+
+    // Internal signals - LCD interface
+    reg lcd_load;
+    reg [7:0] lcd_data;
+    reg lcd_is_cmd;
     wire lcd_busy;
     wire lcd_ready;
 
-    // ========================================================================
-    // State Tick Generator
-    // ========================================================================
+    // Module instantiations
+    
+    // LCD/TFT Display
+    LCD lcd (
+        .CLK_100MHz(CLK_100MHz),
+        .LOAD(lcd_load),
+        .DATA_IN(lcd_data),
+        .IS_CMD(lcd_is_cmd),
+        .TFT_CS(TFT_CS),
+        .TFT_RESET(TFT_RESET),
+        .TFT_SDI(TFT_SDI),
+        .TFT_SCK(TFT_SCK),
+        .TFT_DC(TFT_DC),
+        .BUSY(lcd_busy),
+        .READY(lcd_ready)
+    );
+
+    // Initial blocks
+    
+    initial begin
+        state = IDLE;
+        clk_cycles = 0;
+        state_tick = 0;
+        pixel_counter = 0;
+        byte_index = 0;
+        lcd_load = 0;
+        lcd_data = 0;
+        lcd_is_cmd = 0;
+    end
+
+    // Sequential logic
+    
+    // State tick generator
     always @(posedge CLK_100MHz) begin
         if (clk_cycles < STATE_PERIOD - 1) begin
             clk_cycles <= clk_cycles + 1;
@@ -74,9 +101,7 @@ module Hack (
         end
     end
 
-    // ========================================================================
-    // Application State Machine
-    // ========================================================================
+    // Application state machine
     always @(posedge CLK_100MHz) begin
         // Clear load pulse only after LCD acknowledges by going busy
         if (lcd_busy) begin
@@ -155,29 +180,11 @@ module Hack (
             endcase
         end
     end
+
+    // Combinational logic
     
-    // ========================================================================
-    // LCD Module Instance
-    // ========================================================================
-    LCD lcd (
-        .CLK_100MHz(CLK_100MHz),
-        .load(lcd_load),
-        .data_in(lcd_data),
-        .is_cmd(lcd_is_cmd),
-        .TFT_CS(TFT_CS),
-        .TFT_RESET(TFT_RESET),
-        .TFT_SDI(TFT_SDI),
-        .TFT_SCK(TFT_SCK),
-        .TFT_DC(TFT_DC),
-        .busy(lcd_busy),
-        .ready(lcd_ready)
-    );
-    
-    // ========================================================================
-    // Output Assignments
-    // ========================================================================
     assign TFT_DBG = lcd_busy;
-    assign LED[0] = lcd_ready;          // LED0: Shows when LCD is ready
-    assign LED[1] = (state == STREAM_PIXELS) || (state == FILL_COMPLETE);  // LED1: Shows when actively sending pixels
+    assign LED[0] = lcd_ready;
+    assign LED[1] = (state == STREAM_PIXELS) || (state == FILL_COMPLETE);
 
 endmodule

@@ -1,8 +1,16 @@
+/**
+ * The module Not is a 1-bit NOT gate
+ * Implements: OUT = NOT IN
+ */
+`default_nettype none
 module Not(
-	input in,
-	output out
+    // Data Interface
+    input IN,
+    output OUT
 );
 
-	Nand Nand1(.a(in), .b(in), .out(out));
+    // Module instantiations
+    
+    Nand nand1(.A(IN), .B(IN), .OUT(OUT));
 
 endmodule

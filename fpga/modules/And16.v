@@ -1,11 +1,21 @@
+/**
+ * The module And16 is a 16-bit AND gate
+ * Implements: OUT = A AND B (bitwise)
+ */
+`default_nettype none
 module And16(
-	input[15:0] a,
-	input[15:0] b,
-	output[15:0] out
+    // Data Interface
+    input [15:0] A,
+    input [15:0] B,
+    output [15:0] OUT
 );
 
-	wire[15:0] aNandb;
-	Nand16 Nand16(.a(a), .b(b), .out(aNandb));
-	Not16 Not16(.in(aNandb), .out(out));
+    // Internal signals
+    wire [15:0] a_nand_b;
+
+    // Module instantiations
+    
+    Nand16 nand16(.A(A), .B(B), .OUT(a_nand_b));
+    Not16 not16(.IN(a_nand_b), .OUT(OUT));
 
 endmodule

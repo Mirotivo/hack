@@ -1,18 +1,31 @@
+/**
+ * The module Bit is a 1-bit register with load control
+ * Stores and outputs a single bit value
+ */
+`default_nettype none
 module Bit(
-	input wire in,
-	input wire clk,
-	input wire load,
-	output reg out
+    // Clock
+    input wire CLK,
+
+    // Control Interface
+    input wire LOAD,
+
+    // Data Interface
+    input wire IN,
+    output reg OUT
 );
 
-    // Initial block to set the initial value of the output
+    // Initial blocks
+    
     initial begin
-        out = 1'b0;
+        OUT = 1'b0;
     end
 
-	always @(posedge clk) begin
-		if (load)
-			out <= in;
-	end
+    // Sequential logic
+    
+    always @(posedge CLK) begin
+        if (LOAD)
+            OUT <= IN;
+    end
 
 endmodule

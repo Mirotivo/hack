@@ -1,34 +1,50 @@
 /**
- * The module rst delivers a reset signal at power up which
- * is clocked by clk.
+ * The module Reset delivers a reset signal at power up
+ * which is clocked by CLK_100MHz
  *
- * The timing diagram should be:
+ * The timing diagram:
  * -------------------------------------------
- * clk     0 | 1 | 0 | 1 | 0 | 1 | 0 | 1 ...
+ * CLK     0 | 1 | 0 | 1 | 0 | 1 | 0 | 1 ...
  * -------------------------------------------
- * reset   0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 ...
+ * RESET   0 | 1 | 0 | 0 | 0 | 0 | 0 | 0 ...
  * -------------------------------------------
  */
-
+`default_nettype none
 module Reset(
-    input  wire CLK_100MHz,
-    output wire reset
+    // Clock
+    input wire CLK_100MHz,
+
+    // Reset Output
+    output wire RESET
 );
 
-    // your implementation comes here:
+    // Internal signals
+    reg done;
+    reg reset_r;
 
-    // remember that you did it
-    reg done = 0;
+    // Initial blocks
+    
+    initial begin
+        done = 0;
+        reset_r = 0;
+    end
+
+    // Sequential logic
+    
+    // Remember that reset has been done
     always @(posedge CLK_100MHz)
         done <= 1;
 
-    // reset it on start
-    reg reset_r = 0;
+    // Reset signal generation
     always @(posedge CLK_100MHz) begin
-        if (done==0) reset_r <=1;
-        else reset_r <= 0;
-	end
+        if (done == 0)
+            reset_r <= 1;
+        else
+            reset_r <= 0;
+    end
 
-    assign reset = reset_r;
+    // Combinational logic
+    
+    assign RESET = reset_r;
 
 endmodule

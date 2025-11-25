@@ -1,18 +1,24 @@
+/**
+ * The module Hack is an SPI controller test
+ * Sends alternating test patterns (0xA5, 0x5A) via SPI
+ * These patterns are standard test patterns used in communication protocols
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * to test SPI functionality with continuous transmission
+ */
 `default_nettype none
 
 `include "../../modules/CLK_Divider.v"
 `include "../../modules/SPI.v"
 
-/**
- * ============================================================================
- * Main Module - Test the SPI controller
- * ============================================================================
- */
 module Hack (
+    // Clock
     input CLK_100MHz,
+
+    // GPIO (Buttons and LEDs)
     input [1:0] BUT,
     output [1:0] LED,
     
+    // SPI/TFT Interface
     output TFT_CS,
     output TFT_RESET,
     output TFT_SDI,
@@ -20,42 +26,62 @@ module Hack (
     output TFT_DC
 );
 
-    // Clock divider: 100MHz / 10M = 10Hz
+    // Parameters
+    localparam BYTE1 = 8'hA5;        // First sequence byte (10100101)
+    localparam BYTE2 = 8'h5A;        // Second sequence byte (01011010)
+    
+    // State machine states
+    localparam LOAD_SEQ1 = 2'd0;
+    localparam SEND_SEQ1 = 2'd1;
+    localparam LOAD_SEQ2 = 2'd2;
+    localparam SEND_SEQ2 = 2'd3;
+
+    // Internal signals - Clock divider
     wire clk_divided;
     wire [31:0] clk_count;
     
+    // Internal signals - State machine
+    reg [1:0] state;
+    reg spi_enable;
+    reg [7:0] spi_data;
+    wire spi_busy;
+    wire spi_csx;
+
+    // Module instantiations
+    
+    // Clock divider: 100MHz / 10M = 10Hz
     CLK_Divider clk_div (
-        .clk_in(CLK_100MHz),
-        .divisor(32'd4999999),  // 100MHz / (2 * 5000000) = 10Hz
-        .clk_out(clk_divided),
-        .clk_count(clk_count)
+        .CLK_IN(CLK_100MHz),
+        .DIVISOR(32'd4999999),       // 100MHz / (2 * 5000000) = 10Hz
+        .CLK_OUT(clk_divided),
+        .CLK_COUNT(clk_count)
     );
    
-    // Sequence control - Using unambiguous patterns
-    // 0xA5 and 0x5A are standard test patterns used in disk formatting
-    // and communication protocols because they're unambiguous when bit-shifted
-    localparam BYTE1 = 8'hA5;   // First sequence byte (10100101)
-    localparam BYTE2 = 8'h5A;   // Second sequence byte (01011010)
+    // SPI Controller (using divided 10Hz clock)
+    SPI spi (
+        .CLK_100MHz(clk_divided),
+        .LOAD(spi_enable),
+        .IN(spi_data),
+        .SCK(TFT_SCK),
+        .SDI(TFT_SDI),
+        .CSX(spi_csx),
+        .BUSY(spi_busy)
+    );
+
+    // Initial blocks
     
-    // State machine states - simplified with proper CS timing
-    localparam LOAD_SEQ1  = 2'd0;
-    localparam SEND_SEQ1  = 2'd1;
-    localparam LOAD_SEQ2  = 2'd2;
-    localparam SEND_SEQ2  = 2'd3;
+    initial begin
+        state = LOAD_SEQ1;
+        spi_enable = 0;
+        spi_data = 0;
+    end
+
+    // Sequential logic
     
-    reg [1:0] state = LOAD_SEQ1;
-    reg spi_enable = 0;
-    reg [7:0] spi_data = 0;
-    wire spi_busy;
-    
-    // Simplified sequence controller - CS is now handled by SPI module
+    // Sequence controller - sends alternating test patterns
     always @(posedge clk_divided) begin
-        
         case (state)
-            //═══════════════════════════════════════════════════════
             // First Byte Sequence (0xA5)
-            //═══════════════════════════════════════════════════════
-            
             LOAD_SEQ1: begin
                 // Load data and start transmission
                 spi_data <= BYTE1;
@@ -75,10 +101,7 @@ module Hack (
                 end
             end
             
-            //═══════════════════════════════════════════════════════
             // Second Byte Sequence (0x5A)
-            //═══════════════════════════════════════════════════════
-            
             LOAD_SEQ2: begin
                 // Load data and start transmission
                 spi_data <= BYTE2;
@@ -103,29 +126,16 @@ module Hack (
             end
         endcase
     end
-    
-    // SPI Controller instance
-    // Running at 10Hz (100MHz / 10M)
-    wire spi_csx;
-    SPI spi (
-        .clk(clk_divided),   // Using divided 10Hz clock
-        .load(spi_enable),
-        .in(spi_data),
-        .SCK(TFT_SCK),
-        .SDI(TFT_SDI),
-        .CSX(spi_csx),
-        .busy(spi_busy)
-    );
+
+    // Combinational logic
     
     // Controlled outputs
-    assign TFT_RESET = 1;       // Always HIGH
-    assign TFT_DC = 0;          // Command mode
-
-    // Use CS directly from SPI module
-    assign TFT_CS = spi_csx;
+    assign TFT_RESET = 1;                                              // Always HIGH
+    assign TFT_DC = 0;                                                 // Command mode
+    assign TFT_CS = spi_csx;                                          // CS from SPI module
     
     // LED indicators
-    assign LED[0] = spi_busy;      // LED0: Shows when SPI is transmitting
-    assign LED[1] = (state == SEND_SEQ1 || state == SEND_SEQ2);  // LED1: Shows active sequence state
+    assign LED[0] = spi_busy;                                          // Shows when SPI is transmitting
+    assign LED[1] = (state == SEND_SEQ1 || state == SEND_SEQ2);      // Shows active sequence state
 
 endmodule

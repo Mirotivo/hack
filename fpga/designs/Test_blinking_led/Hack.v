@@ -1,32 +1,44 @@
+/**
+ * The module Hack is a blinking LED test
+ * Blinks a single LED at 1 Hz (toggles every second)
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * to test basic clock division and LED control
+ */
+`default_nettype none
+
 `include "../../modules/Nand.v"
 `include "../../modules/Not.v"
 `include "../../modules/And.v"
 `include "../../modules/Or.v"
 `include "../../modules/CLK_Divider.v"
-/** 
- * The module hack is our top-level module
- * It connects the external pins of our fpga (Hack.pcf)
- * to the internal components (cpu,mem,clk,rst,rom)
- *
- */
 
-`default_nettype none
-
-module Hack(                        // top level module
+module Hack (
+    // Clock
     input wire clk_in,
+
+    // GPIO (LED)
     output reg led
 );
 
+    // Internal signals
     wire clk_out;
-    // Divide the input clock frequency by 100 million to get a count every second
+    wire [31:0] clk_count;
+
+    // Module instantiations
+    
+    // Divide the input clock frequency by 100 million to get a toggle every second
     CLK_Divider divider_inst (
-        .clk_in(clk_in),
-        .divisor(100000000),
-        .clk_out(clk_out)
+        .CLK_IN(clk_in),
+        .DIVISOR(100000000),
+        .CLK_OUT(clk_out),
+        .CLK_COUNT(clk_count)
     );
 
-    // Set the output of the pin to always be high
+    // Combinational logic
+    
+    // Set the LED to follow the divided clock
     always @(*) begin
         led = clk_out;
     end
+
 endmodule

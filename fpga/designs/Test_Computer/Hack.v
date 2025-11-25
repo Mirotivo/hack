@@ -6,15 +6,16 @@
 `define ROMFILE "../designs/Test_Computer/programs/combined.hack"
 // `define ROMFILE "../designs/Test_Computer/programs/bluescreen.hack"
 `include "include.v"
-/** 
- * The module hack is our top-level module
- * It connects the external pins of our fpga (Hack.pcf)
- * to the internal components (cpu,mem,clk,rst,rom)
+
+/**
+ * The module Hack is our top-level module
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * to the internal components (CPU, Memory, Clock, Reset, ROM)
  *
  */
-
 `default_nettype none
 module Hack (
+    // Clock
     input CLK_100MHz,
 
     // GPIO (Buttons and LEDs)
@@ -32,70 +33,75 @@ module Hack (
     output TFT_SCK,
     output TFT_DC
 );
-    // Internal signals
+
+    // Internal signals - CPU and Memory
     wire [15:0] pc;
     wire [15:0] instruction;
-    wire [15:0] addressM;
-    wire [15:0] inM;
-    wire loadM;
-    wire [15:0] outM;
-    wire CLK_CPU;
-    wire [31:0] CLK_COUNT;
+    wire [15:0] address_m;
+    wire [15:0] in_m;
+    wire load_m;
+    wire [15:0] out_m;
 
-    // Button inversion (buttons are active low)
-    wire inv_0, inv_1;
-    Not not_but0(.in(BUT[0]), .out(inv_0));
-    Not not_but1(.in(BUT[1]), .out(inv_1));
+    // Internal signals - Clock
+    wire clk_cpu;
+    wire [31:0] clk_count;
 
-    // Reset signal (any button pressed generates reset)
+    // GPIO - Button processing
+    wire inv_0;
+    wire inv_1;
     wire reset;
-    assign reset = inv_0 | inv_1;
+
+    // Module instantiations
+    
+    // GPIO - Button inversion (buttons are active low)
+    Not not_but0(.IN(BUT[0]), .OUT(inv_0));
+    Not not_but1(.IN(BUT[1]), .OUT(inv_1));
 
     // Clock divider: 100MHz -> 50Hz
-    // CLK_CPU acts as clock enable signal, not separate clock domain
+    // clk_cpu acts as clock enable signal, not separate clock domain
     // 50Hz = 20ms per instruction, slower than LCD (10ms per byte)
     // This eliminates the need for busy-wait loops!
     CLK_Divider clk_divider_inst (
-        .clk_in(CLK_100MHz),
-        .divisor(2000000),  // Divide by 2,000,000 to get 50 Hz (20ms per instruction)
-        .clk_out(CLK_CPU),
-        .clk_count(CLK_COUNT)
+        .CLK_IN(CLK_100MHz),
+        .DIVISOR(2000000),          // Divide by 2,000,000 to get 50 Hz (20ms per instruction)
+        .CLK_OUT(clk_cpu),
+        .CLK_COUNT(clk_count)
     );
 
     // Instruction ROM
     ROM rom_inst(
         .CLK_100MHz(CLK_100MHz),
-        .CLK_CPU(CLK_CPU),
-        .CLK_COUNT(CLK_COUNT),
-        .pc(pc),
-        .instruction(instruction)
+        .CLK_CPU(clk_cpu),
+        .CLK_COUNT(clk_count),
+        .PC(pc),
+        .INSTRUCTION(instruction)
     );
 
-    // Hack CPU (nand2tetris)
+    // CPU - Hack CPU (nand2tetris)
     CPU cpu_inst(
         .CLK_100MHz(CLK_100MHz),
-        .CLK_CPU(CLK_CPU),
-        .CLK_COUNT(CLK_COUNT),
-        .reset(reset),              // Use explicit reset wire
-        .instruction(instruction),  // Instruction for execution
-        .addressM(addressM),        // Address in data memory to Read(of M)
-        .inM(inM),                  // M value input (M = contents of RAM[A])
-        .outM(outM),                // M value output
-        .loadM(loadM),              // Write to M?
-        .pc(pc)                     // Address of next instruction
+        .CLK_CPU(clk_cpu),
+        .CLK_COUNT(clk_count),
+        .RESET(reset),
+        .INSTRUCTION(instruction),
+        .PC(pc),
+        .IN_M(in_m),
+        .LOAD_M(load_m),
+        .OUT_M(out_m),
+        .ADDRESS_M(address_m)
     );
 
     // Memory-mapped I/O (RAM and peripherals)
     MemoryMappedIO mem_io_inst(
         .CLK_100MHz(CLK_100MHz),
-        .CLK_CPU(CLK_CPU),
-        .CLK_COUNT(CLK_COUNT),
-        .address(addressM),
-        .dataR(inM),
-        .dataW(outM),
-        .loadM(loadM),
-        .but({inv_0, inv_1}),
-        .led(LED),
+        .CLK_CPU(clk_cpu),
+        .CLK_COUNT(clk_count),
+        .ADDRESS(address_m),
+        .DATA_R(in_m),
+        .DATA_W(out_m),
+        .LOAD_M(load_m),
+        .BUT({inv_0, inv_1}),
+        .LED(LED),
         .UART_RX(UART_RX),
         .UART_TX(UART_TX),
         .TFT_CS(TFT_CS),
@@ -104,5 +110,10 @@ module Hack (
         .TFT_SCK(TFT_SCK),
         .TFT_DC(TFT_DC)
     );
+
+    // Combinational logic
+    
+    // Reset signal (any button pressed generates reset)
+    assign reset = inv_0 | inv_1;
 
 endmodule

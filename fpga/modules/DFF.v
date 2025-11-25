@@ -1,16 +1,27 @@
+/**
+ * The module DFF is a D Flip-Flop
+ * Captures input value on clock edge
+ */
+`default_nettype none
 module DFF(
-	input wire in,
-	input wire clk,
-	output reg out
+    // Clock
+    input wire CLK,
+
+    // Data Interface
+    input wire IN,
+    output reg OUT
 );
 
-    // Initial block to set the initial value of the output register
+    // Initial blocks
+    
     initial begin
-        out = 1'b0;
+        OUT = 1'b0;
     end
 
-    always @(posedge clk) begin
-        out <= in;
+    // Sequential logic
+    
+    always @(posedge CLK) begin
+        OUT <= IN;
     end
 
 endmodule

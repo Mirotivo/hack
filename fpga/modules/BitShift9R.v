@@ -1,23 +1,35 @@
+/**
+ * The module BitShift9R is a 9-bit right shift register
+ * Supports load and shift operations with MSB input
+ */
 `default_nettype none
-
 module BitShift9R (
-    input wire clk,
-    input wire [8:0] in,
-    input wire inMSB,
-    input wire load,
-    input wire shift,
-    output reg [8:0] out
+    // Clock
+    input wire CLK,
+
+    // Control Interface
+    input wire LOAD,
+    input wire SHIFT,
+
+    // Data Interface
+    input wire [8:0] IN,
+    input wire IN_MSB,
+    output reg [8:0] OUT
 );
-    // Initial block to set the initial value of the output register
+
+    // Initial blocks
+    
     initial begin
-        out = 9'b0;
+        OUT = 9'b0;
     end
 
-    always @(posedge clk) begin
-        if (load) begin
-            out <= in;
-        end else if (shift) begin
-            out <= (out >> 1) | (inMSB << 8);
+    // Sequential logic
+    
+    always @(posedge CLK) begin
+        if (LOAD) begin
+            OUT <= IN;
+        end else if (SHIFT) begin
+            OUT <= (OUT >> 1) | (IN_MSB << 8);
         end
     end
 

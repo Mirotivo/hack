@@ -1,8 +1,18 @@
+/**
+ * The module Inc16 is a 16-bit incrementer
+ * Adds 1 to a 16-bit value
+ * 
+ * OUT = IN + 1
+ */
+`default_nettype none
 module Inc16(
-	input[15:0] in,
-	output[15:0] out
+    // Data Interface
+    input [15:0] IN,
+    output [15:0] OUT
 );
 
-	Add16 Add16(.a(in), .b(16'b0000000000000001), .out(out));
+    // Module instantiations
+    
+    Add16 add16(.A(IN), .B(16'b0000000000000001), .OUT(OUT));
 
 endmodule

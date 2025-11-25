@@ -1,21 +1,26 @@
+/**
+ * The module Hack is a simple LED test
+ * Sets an LED pin to always be HIGH
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * to test basic output functionality
+ */
+`default_nettype none
+
 `include "../../modules/Nand.v"
 `include "../../modules/Not.v"
 `include "../../modules/And.v"
 `include "../../modules/Or.v"
-/** 
- * The module hack is our top-level module
- * It connects the external pins of our fpga (Hack.pcf)
- * to the internal components (cpu,mem,clk,rst,rom)
- *
- */
 
-`default_nettype none
-
-module Hack(                        // top level module 
+module Hack (
+    // GPIO (LED)
     output reg always_true
 );
-    // Set the output of the pin to always be high
+
+    // Combinational logic
+    
+    // Set the output pin to always be HIGH
     always @(*) begin
         always_true = 1;
     end
+
 endmodule

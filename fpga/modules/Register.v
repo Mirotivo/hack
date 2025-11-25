@@ -1,16 +1,31 @@
+/**
+ * The module Register is a 16-bit register with load control
+ * Stores and outputs 16-bit values
+ */
+`default_nettype none
 module Register (
-    input wire clk,
-    input wire load,
-    input wire [15:0] in,
-    output reg [15:0] out
+    // Clock
+    input wire CLK,
+
+    // Control Interface
+    input wire LOAD,
+
+    // Data Interface
+    input wire [15:0] IN,
+    output reg [15:0] OUT
 );
-    // Initial block to set the initial value of the output register
+
+    // Initial blocks
+    
     initial begin
-        out = 16'b0;
+        OUT = 16'b0;
     end
 
-    always @(posedge clk) begin
-        if (load)
-            out <= in;
+    // Sequential logic
+    
+    always @(posedge CLK) begin
+        if (LOAD)
+            OUT <= IN;
     end
+
 endmodule

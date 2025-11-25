@@ -1,19 +1,34 @@
+/**
+ * The module CLK_Divider divides the input clock frequency
+ * Generates a slower clock signal and provides clock count
+ */
+`default_nettype none
 module CLK_Divider (
-    input wire clk_in,
-    input wire [31:0] divisor,
-    output reg clk_out,
-    output reg [31:0] clk_count
+    // Clock
+    input wire CLK_IN,
+
+    // Configuration
+    input wire [31:0] DIVISOR,
+
+    // Outputs
+    output reg CLK_OUT,
+    output reg [31:0] CLK_COUNT
 );
+
+    // Initial blocks
+    
     initial begin
-        clk_out = 1;
-        clk_count = 0;
+        CLK_OUT = 1;
+        CLK_COUNT = 0;
     end
 
-    always @(posedge clk_in) begin
-        clk_count <= clk_count + 1;
-        if (clk_count == divisor) begin
-            clk_count <= 0;
-            clk_out <= ~clk_out;
+    // Sequential logic
+    
+    always @(posedge CLK_IN) begin
+        CLK_COUNT <= CLK_COUNT + 1;
+        if (CLK_COUNT == DIVISOR) begin
+            CLK_COUNT <= 0;
+            CLK_OUT <= ~CLK_OUT;
         end
     end
 

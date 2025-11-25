@@ -1,11 +1,22 @@
+/**
+ * The module HalfAdder is a half adder
+ * Adds two 1-bit values, produces sum and carry
+ * 
+ * SUM = A XOR B
+ * CARRY = A AND B
+ */
+`default_nettype none
 module HalfAdder(
-	input a,
-	input b,
-	output sum,
-	output carry
+    // Data Interface
+    input A,
+    input B,
+    output SUM,
+    output CARRY
 );
 
-	Xor Xor(.a(a), .b(b), .out(sum));
-	And And(.a(a), .b(b), .out(carry));
+    // Module instantiations
+    
+    Xor xor_gate(.A(A), .B(B), .OUT(SUM));
+    And and_gate(.A(A), .B(B), .OUT(CARRY));
 
 endmodule

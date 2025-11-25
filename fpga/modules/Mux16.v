@@ -1,25 +1,37 @@
+/**
+ * The module Mux16 is a 16-bit multiplexer
+ * Selects between two 16-bit inputs based on SEL
+ * 
+ * OUT = SEL ? B : A
+ */
+`default_nettype none
 module Mux16(
-	input[15:0] a,
-	input[15:0] b,
-	input sel,
-	output[15:0] out
+    // Data Interface
+    input [15:0] A,
+    input [15:0] B,
+    output [15:0] OUT,
+
+    // Control Interface
+    input SEL
 );
 
-	Mux Mux0(.a(a[0]), .b(b[0]), .sel(sel), .out(out[0]));
-	Mux Mux1(.a(a[1]), .b(b[1]), .sel(sel), .out(out[1]));
-	Mux Mux2(.a(a[2]), .b(b[2]), .sel(sel), .out(out[2]));
-	Mux Mux3(.a(a[3]), .b(b[3]), .sel(sel), .out(out[3]));
-	Mux Mux4(.a(a[4]), .b(b[4]), .sel(sel), .out(out[4]));
-	Mux Mux5(.a(a[5]), .b(b[5]), .sel(sel), .out(out[5]));
-	Mux Mux6(.a(a[6]), .b(b[6]), .sel(sel), .out(out[6]));
-	Mux Mux7(.a(a[7]), .b(b[7]), .sel(sel), .out(out[7]));
-	Mux Mux8(.a(a[8]), .b(b[8]), .sel(sel), .out(out[8]));
-	Mux Mux9(.a(a[9]), .b(b[9]), .sel(sel), .out(out[9]));
-	Mux Mux10(.a(a[10]), .b(b[10]), .sel(sel), .out(out[10]));
-	Mux Mux11(.a(a[11]), .b(b[11]), .sel(sel), .out(out[11]));
-	Mux Mux12(.a(a[12]), .b(b[12]), .sel(sel), .out(out[12]));
-	Mux Mux13(.a(a[13]), .b(b[13]), .sel(sel), .out(out[13]));
-	Mux Mux14(.a(a[14]), .b(b[14]), .sel(sel), .out(out[14]));
-	Mux Mux15(.a(a[15]), .b(b[15]), .sel(sel), .out(out[15]));
+    // Module instantiations
+    
+    Mux mux0(.A(A[0]), .B(B[0]), .SEL(SEL), .OUT(OUT[0]));
+    Mux mux1(.A(A[1]), .B(B[1]), .SEL(SEL), .OUT(OUT[1]));
+    Mux mux2(.A(A[2]), .B(B[2]), .SEL(SEL), .OUT(OUT[2]));
+    Mux mux3(.A(A[3]), .B(B[3]), .SEL(SEL), .OUT(OUT[3]));
+    Mux mux4(.A(A[4]), .B(B[4]), .SEL(SEL), .OUT(OUT[4]));
+    Mux mux5(.A(A[5]), .B(B[5]), .SEL(SEL), .OUT(OUT[5]));
+    Mux mux6(.A(A[6]), .B(B[6]), .SEL(SEL), .OUT(OUT[6]));
+    Mux mux7(.A(A[7]), .B(B[7]), .SEL(SEL), .OUT(OUT[7]));
+    Mux mux8(.A(A[8]), .B(B[8]), .SEL(SEL), .OUT(OUT[8]));
+    Mux mux9(.A(A[9]), .B(B[9]), .SEL(SEL), .OUT(OUT[9]));
+    Mux mux10(.A(A[10]), .B(B[10]), .SEL(SEL), .OUT(OUT[10]));
+    Mux mux11(.A(A[11]), .B(B[11]), .SEL(SEL), .OUT(OUT[11]));
+    Mux mux12(.A(A[12]), .B(B[12]), .SEL(SEL), .OUT(OUT[12]));
+    Mux mux13(.A(A[13]), .B(B[13]), .SEL(SEL), .OUT(OUT[13]));
+    Mux mux14(.A(A[14]), .B(B[14]), .SEL(SEL), .OUT(OUT[14]));
+    Mux mux15(.A(A[15]), .B(B[15]), .SEL(SEL), .OUT(OUT[15]));
 
 endmodule

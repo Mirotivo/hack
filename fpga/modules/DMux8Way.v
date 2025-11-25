@@ -1,61 +1,69 @@
+/**
+ * The module DMux8Way is an 8-way 1-bit demultiplexer
+ * Routes input to one of eight outputs based on 3-bit SEL
+ * 
+ * SEL[2:0]: 000=A, 001=B, 010=C, 011=D, 100=E, 101=F, 110=G, 111=H
+ */
+`default_nettype none
 module DMux8Way(
-	input in,
-	input[2:0] sel,
-	output a,
-	output b,
-	output c,
-	output d,
-	output e,
-	output f,
-	output g,
-	output h
+    // Data Interface
+    input IN,
+    output A,
+    output B,
+    output C,
+    output D,
+    output E,
+    output F,
+    output G,
+    output H,
+
+    // Control Interface
+    input [2:0] SEL
 );
 
-	wire notsel0;
-	wire notsel1;
-	wire notsel2;
-	wire sela1;
-	wire selb1;
-	wire selc1;
-	wire seld1;
-	wire sele1;
-	wire self1;
-	wire selg1;
-	wire selh1;
-	wire sela;
-	wire selb;
-	wire selc;
-	wire seld;
-	wire sele;
-	wire self;
-	wire selg;
-	wire selh;
-	Not Not1(.in(sel[0]), .out(notsel0));
-	Not Not2(.in(sel[1]), .out(notsel1));
-	Not Not3(.in(sel[2]), .out(notsel2));
-	And And1(.a(notsel0), .b(notsel1), .out(sela1));
-	And And3(.a(sela1), .b(notsel2), .out(sela));
-	And And4(.a(sela), .b(in), .out(a));
-	And And5(.a(sel[0]), .b(notsel1), .out(selb1));
-	And And6(.a(selb1), .b(notsel2), .out(selb));
-	And And7(.a(selb), .b(in), .out(b));
-	And And8(.a(notsel0), .b(sel[1]), .out(selc1));
-	And And9(.a(selc1), .b(notsel2), .out(selc));
-	And And10(.a(selc), .b(in), .out(c));
-	And And11(.a(sel[0]), .b(sel[1]), .out(seld1));
-	And And12(.a(seld1), .b(notsel2), .out(seld));
-	And And13(.a(seld), .b(in), .out(d));
-	And And14(.a(notsel0), .b(notsel1), .out(sele1));
-	And And15(.a(sele1), .b(sel[2]), .out(sele));
-	And And16(.a(sele), .b(in), .out(e));
-	And And17(.a(sel[0]), .b(notsel1), .out(self1));
-	And And18(.a(self1), .b(sel[2]), .out(self));
-	And And19(.a(self), .b(in), .out(f));
-	And And20(.a(notsel0), .b(sel[1]), .out(selg1));
-	And And21(.a(selg1), .b(sel[2]), .out(selg));
-	And And22(.a(selg), .b(in), .out(g));
-	And And23(.a(sel[0]), .b(sel[1]), .out(selh1));
-	And And24(.a(selh1), .b(sel[2]), .out(selh));
-	And And25(.a(selh), .b(in), .out(h));
+    // Internal signals
+    wire not_sel0;
+    wire not_sel1;
+    wire not_sel2;
+    wire sel_a1, sel_b1, sel_c1, sel_d1, sel_e1, sel_f1, sel_g1, sel_h1;
+    wire sel_a, sel_b, sel_c, sel_d, sel_e, sel_f, sel_g, sel_h;
+
+    // Module instantiations
+    
+    Not not1(.in(SEL[0]), .out(not_sel0));
+    Not not2(.in(SEL[1]), .out(not_sel1));
+    Not not3(.in(SEL[2]), .out(not_sel2));
+    
+    And and1(.a(not_sel0), .b(not_sel1), .out(sel_a1));
+    And and3(.a(sel_a1), .b(not_sel2), .out(sel_a));
+    And and4(.a(sel_a), .b(IN), .out(A));
+    
+    And and5(.a(SEL[0]), .b(not_sel1), .out(sel_b1));
+    And and6(.a(sel_b1), .b(not_sel2), .out(sel_b));
+    And and7(.a(sel_b), .b(IN), .out(B));
+    
+    And and8(.a(not_sel0), .b(SEL[1]), .out(sel_c1));
+    And and9(.a(sel_c1), .b(not_sel2), .out(sel_c));
+    And and10(.a(sel_c), .b(IN), .out(C));
+    
+    And and11(.a(SEL[0]), .b(SEL[1]), .out(sel_d1));
+    And and12(.a(sel_d1), .b(not_sel2), .out(sel_d));
+    And and13(.a(sel_d), .b(IN), .out(D));
+    
+    And and14(.a(not_sel0), .b(not_sel1), .out(sel_e1));
+    And and15(.a(sel_e1), .b(SEL[2]), .out(sel_e));
+    And and16(.a(sel_e), .b(IN), .out(E));
+    
+    And and17(.a(SEL[0]), .b(not_sel1), .out(sel_f1));
+    And and18(.a(sel_f1), .b(SEL[2]), .out(sel_f));
+    And and19(.a(sel_f), .b(IN), .out(F));
+    
+    And and20(.a(not_sel0), .b(SEL[1]), .out(sel_g1));
+    And and21(.a(sel_g1), .b(SEL[2]), .out(sel_g));
+    And and22(.a(sel_g), .b(IN), .out(G));
+    
+    And and23(.a(SEL[0]), .b(SEL[1]), .out(sel_h1));
+    And and24(.a(sel_h1), .b(SEL[2]), .out(sel_h));
+    And and25(.a(sel_h), .b(IN), .out(H));
 
 endmodule

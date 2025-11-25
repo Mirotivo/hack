@@ -1,18 +1,20 @@
+/**
+ * The module Hack is a copy/template design (placeholder)
+ * Framework template for new designs
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * Currently empty - implementation pending
+ */
+`default_nettype none
+
 `define RAMFILE "../designs/Test_Computer/empty_ram.ram"
 `define ROMFILE "../designs/Test_Computer/empty_rom.rom"
 `include "include.v"
-/** 
- * The module hack is our top-level module
- * It connects the external pins of our fpga (Hack.pcf)
- * to the internal components (cpu,mem,clk,rst,rom)
- *
- */
 
-`default_nettype none
 module Hack (
+    // Clock
     input CLK_100MHz,
 
-    // Buttons and LEDs
+    // GPIO (Buttons and LEDs)
     input [1:0] BUT,
     output [1:0] LED,
 
@@ -39,11 +41,12 @@ module Hack (
     output LCD_SCK,
     output LCD_CSX,
 
-    // RTP
+    // RTP (Resistive Touch Panel)
     input RTP_SDI,
     output RTP_SDO,
     output RTP_SCK
 );
 
+    // TODO: Add implementation
 
 endmodule

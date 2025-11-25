@@ -1,51 +1,67 @@
-`default_nettype none
-
 /**
- * ============================================================================
- * SPI Controller Module - With Timing Divider
- * ============================================================================
- * Original logic with added timing control via counter
+ * The module SPI is an SPI Controller with timing divider
+ * Transmits 8-bit data via SPI protocol at 1MHz
+ * 
+ * BUSY indicates transmission in progress
  */
+`default_nettype none
 module SPI (
-    input wire CLK_100MHz,      // System clock (100MHz)
-    input wire load,            // Start sending when HIGH
-    input wire [7:0] in,        // Byte to send
-    output reg SCK = 0,         // SPI Clock
-    output reg SDI = 0,         // SPI Data
-    output reg CSX = 1,         // Chip Select (active LOW)
-    output wire busy            // HIGH while transmitting
+    // Clock
+    input wire CLK_100MHz,
+
+    // Control Interface
+    input wire LOAD,
+    output wire BUSY,
+
+    // Data Interface
+    input wire [7:0] IN,
+
+    // SPI
+    output reg SCK,
+    output reg SDI,
+    output reg CSX
 );
-    
-    // ========================================================================
-    // Clock Generation
-    // ========================================================================
-    parameter CLK_FREQ = 100000000;  // 100 MHz
-    parameter SPI_FREQ = 1000;   // 1 MHz SPI (production speed)
+
+    // Parameters
+    parameter CLK_FREQ = 100000000;      // 100 MHz
+    parameter SPI_FREQ = 1000;           // 1 MHz SPI (production speed)
     localparam SPI_PERIOD = CLK_FREQ / SPI_FREQ;
     localparam SPI_HALF_PERIOD = SPI_PERIOD / 2;  // For SCK toggle
     
-    // ========================================================================
-    // State Machine
-    // ========================================================================
-    localparam IDLE = 1'd0;
+    // State machine states
+    localparam IDLE     = 1'd0;
     localparam TRANSMIT = 1'd1;
     
-    reg state = IDLE;
-    reg [31:0] clk_cycles = 0;   // Counter for timing division
-    reg [4:0] bit_index = 0;
-    reg [7:0] data_reg = 0;
+    // Internal signals
+    reg state;
+    reg [31:0] clk_cycles;
+    reg [4:0] bit_index;
+    reg [7:0] data_reg;
     
-    assign busy = (state != IDLE);
+    // Initial blocks
     
-    // ========================================================================
-    // SPI Transmission Logic - Original Logic with Timing Divider
-    // ========================================================================
+    initial begin
+        SCK = 0;
+        SDI = 0;
+        CSX = 1;
+        state = IDLE;
+        clk_cycles = 0;
+        bit_index = 0;
+        data_reg = 0;
+    end
+
+    // Combinational logic
+    
+    assign BUSY = (state != IDLE);
+    
+    // Sequential logic
+    
     always @(posedge CLK_100MHz) begin
         case (state)
             IDLE: begin
-                if (load) begin
+                if (LOAD) begin
                     // Start new transmission
-                    data_reg <= in;
+                    data_reg <= IN;
                     bit_index <= 0;
                     clk_cycles <= 0;
                     state <= TRANSMIT;
@@ -60,7 +76,7 @@ module SPI (
                 end else begin
                     clk_cycles <= 0;
                     
-                    // Original logic - execute once per HALF_PERIOD
+                    // Execute once per HALF_PERIOD
                     if (bit_index < 16) begin
                         // Send 8 bits (16 half-clocks)
                         if (bit_index[0] == 0) begin
@@ -84,4 +100,5 @@ module SPI (
             default: state <= IDLE;
         endcase
     end
+
 endmodule

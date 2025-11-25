@@ -1,12 +1,5 @@
 `define RAMFILE "empty_ram.ram"
-// `define ROMFILE "empty_rom.rom"
 `define ROMFILE "blinker.hack"
-// `define ROMFILE "blinker.slow.hack"
-// `define ROMFILE "counter_no_loop.hack"
-// `define ROMFILE "counter_keys.hack"
-// `define ROMFILE "memory.hack"
-// `define ROMFILE "counter.hack"
-// `define ROMFILE "keys_leds.hack"
 
 `include "../../modules/CLK_Divider.v"
 `include "../../modules/Nand.v"
@@ -36,15 +29,17 @@
 `include "../../modules/UartRX.v"
 `include "../../modules/UartTX.v"
 `include "../../modules/MemoryMappedIO.v"
-/** 
- * The module hack is our top-level module
- * It connects the external pins of our fpga (Hack.pcf)
- * to the internal components (cpu,mem,clk,rst,rom)
- *
+
+/**
+ * The module Hack is a UART echo test
+ * Receives data via UART RX and echoes it back via UART TX
+ * Buttons can clear the receiver
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * to test UART RX/TX functionality with echo
  */
 `default_nettype none
-
 module Hack (
+    // Clock
     input CLK_100MHz,
 
     // GPIO (Buttons and LEDs)
@@ -56,33 +51,47 @@ module Hack (
     output UART_TX
 );
 
-
-    // UART RX module
+    // Internal signals - UART RX
     wire [15:0] uart_rx_data;
     wire uart_rx_ready;
-    reg uart_rx_clear;;
+    reg uart_rx_clear;
 
+    // Internal signals - UART TX
+    reg [15:0] uart_tx_data;
+    reg uart_tx_load;
+    wire uart_tx_busy;
+
+    // Internal signals - Button processing
+    wire inv_0;
+    wire inv_1;
+
+    // Module instantiations
+    
+    // GPIO - Button inversion (buttons are active low)
+    Not not1(.IN(BUT[0]), .OUT(inv_0));
+    Not not2(.IN(BUT[1]), .OUT(inv_1));
+
+    // UART - Receiver
     UartRX uart_rx (
         .CLK_100MHz(CLK_100MHz),
         .RX(UART_RX),
-        .clear(uart_rx_clear),
-        .out(uart_rx_data),
-        .rx_ready(uart_rx_ready)
+        .CLEAR(uart_rx_clear),
+        .OUT(uart_rx_data),
+        .RX_READY(uart_rx_ready)
     );
 
-    // UART TX module
-    wire [15:0] uart_tx_data;
-    wire uart_tx_load;
-    wire uart_tx_busy;
-
+    // UART - Transmitter
     UartTX uart_tx (
         .CLK_100MHz(CLK_100MHz),
-        .load(uart_tx_load),  // Control load signal to start transmission
-        .in(uart_tx_data), // Input data to be transmitted (8 bits)
+        .LOAD(uart_tx_load),
+        .IN(uart_tx_data),
         .TX(UART_TX),
-        .tx_busy(uart_tx_busy)
+        .TX_BUSY(uart_tx_busy)
     );
 
+    // Sequential logic
+    
+    // UART echo control
     always @(posedge CLK_100MHz) begin
         // Clear the UART receiver if any button is pressed
         if (inv_0 || inv_1) begin
@@ -93,25 +102,19 @@ module Hack (
 
         if (!uart_tx_busy) begin
             if (!uart_tx_load && uart_rx_ready) begin
-                uart_tx_data <= uart_rx_data; // Load received data into tx_data
-                uart_tx_load <= 1;               // Trigger the UART transmitter
+                uart_tx_data <= uart_rx_data;   // Load received data into tx_data
+                uart_tx_load <= 1;              // Trigger the UART transmitter
             end
         end else begin
-            uart_tx_load <= 0;               // De-assert the load signal
+            uart_tx_load <= 0;                  // De-assert the load signal
             uart_rx_clear <= 1;
         end
     end
 
-    // Invert the inputs (example)
-    wire inv_0, inv_1;
-    Not Not1(.in(BUT[0]), .out(inv_0));
-    Not Not2(.in(BUT[1]), .out(inv_1));
-
-    // Connect the inverted signals to LEDs (example)
-    // assign LED[0] = inv_0;
-    // assign LED[1] = inv_1;
+    // Combinational logic
+    
+    // Connect status signals to LEDs
     assign LED[0] = uart_rx_clear;
     assign LED[1] = uart_rx_ready;
 
 endmodule
-

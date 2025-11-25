@@ -1,16 +1,18 @@
-`include "../../modules/SRAM_Controller.v"
-/** 
- * The module hack is our top-level module
- * It connects the external pins of our fpga (Hack.pcf)
- * to the internal components (cpu,mem,clk,rst,rom)
- *
+/**
+ * The module Hack is an SRAM controller test (placeholder)
+ * Framework for testing external SRAM functionality
+ * It connects the external pins of our FPGA (Hack.pcf)
+ * Currently empty - implementation pending
  */
-
 `default_nettype none
+
+`include "../../modules/SRAM_Controller.v"
+
 module Hack (
+    // Clock
     input CLK_100MHz,
 
-    // Buttons and LEDs
+    // GPIO (Buttons and LEDs)
     input [1:0] BUT,
     output [1:0] LED,
 
@@ -37,11 +39,12 @@ module Hack (
     output LCD_SCK,
     output LCD_CSX,
 
-    // RTP
+    // RTP (Resistive Touch Panel)
     input RTP_SDI,
     output RTP_SDO,
     output RTP_SCK
 );
 
+    // TODO: Add SRAM test implementation
 
 endmodule

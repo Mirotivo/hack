@@ -1,15 +1,25 @@
+/**
+ * The module Or16 is a 16-bit OR gate
+ * Implements: OUT = A OR B (bitwise)
+ */
+`default_nettype none
 module Or16(
-	input[15:0] a,
-	input[15:0] b,
-	output[15:0] out
+    // Data Interface
+    input [15:0] A,
+    input [15:0] B,
+    output [15:0] OUT
 );
 
-	wire[15:0] nota;
-	wire[15:0] notb;
-	wire[15:0] notab;
-    Not16 Not16(.in(a), .out(nota));
-	Not16 Not16_2(.in(b), .out(notb));
-	And16 And16(.a(nota), .b(notb), .out(notab));
-	Not16 Not16_3(.in(notab), .out(out));
+    // Internal signals
+    wire [15:0] not_a;
+    wire [15:0] not_b;
+    wire [15:0] not_ab;
+
+    // Module instantiations
+    
+    Not16 not16_1(.IN(A), .OUT(not_a));
+    Not16 not16_2(.IN(B), .OUT(not_b));
+    And16 and16(.A(not_a), .B(not_b), .OUT(not_ab));
+    Not16 not16_3(.IN(not_ab), .OUT(OUT));
 
 endmodule
