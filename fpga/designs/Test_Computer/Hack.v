@@ -1,10 +1,5 @@
 `define RAMFILE "../designs/Test_Computer/empty_ram.ram"
-// `define ROMFILE "../designs/Test_Computer/empty_rom.rom"
-// `define ROMFILE "../designs/Test_Computer/programs/echo.hack"
-// `define ROMFILE "../designs/Test_Computer/programs/helloworld.hack"
-// `define ROMFILE "../designs/Test_Computer/programs/sys.hack"
-`define ROMFILE "../designs/Test_Computer/programs/combined.hack"
-// `define ROMFILE "../designs/Test_Computer/programs/bluescreen.hack"
+`define ROMFILE "../designs/Test_Computer/programs/build/combined.hack"
 `include "include.v"
 
 /**

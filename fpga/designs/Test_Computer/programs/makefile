@@ -1,6 +1,6 @@
-# File bases
-BASES = Sys Mem UART
-# BASES = demo_bluescreen Mem Screen
+# File bases - can be overridden from parent makefile
+# Example: make BASES="jack/demos/Sys jack/system/Mem jack/system/UART"
+BASES ?= jack/demos/Sys jack/system/Mem jack/system/UART
 
 # Extensions
 JACK_EXT = .jack
@@ -14,23 +14,25 @@ HACK_ASSEMBLER = ../../../../tools/IDE/main.py "assemble"
 # File lists
 JACK_FILES = $(addsuffix $(JACK_EXT), $(BASES))
 VM_FILES = $(addsuffix $(VM_EXT), $(BASES))
-VM_FILE = combined.vm
-ASM_FILE = combined.asm
-HEX_FILE = combined.hex
-BIN_FILE = combined.hack
+VM_FILE = build/combined.vm
+ASM_FILE = build/combined.asm
+HEX_FILE = build/combined.hex
+BIN_FILE = build/combined.hack
 
 # Default target
 all: compile translate assemble
 
-# Pattern rule to compile .jack files to .vm files
-%.vm: %.jack
-	python3 $(JACK_ANALYZER) $<
-
-# Target to combine .vm files into one .vm file
+# Target to compile and combine VM files
 compile: $(VM_FILE)
 
-$(VM_FILE): $(VM_FILES)
-	cat $(VM_FILES) > $(VM_FILE)
+$(VM_FILE): $(JACK_FILES)
+	@echo "Compiling Jack files..."
+	@for base in $(BASES); do \
+		echo "  Compiling $$base.jack..."; \
+		python3 $(JACK_ANALYZER) $$base.jack; \
+	done
+	@echo "Combining VM files..."
+	@cat $(VM_FILES) > $(VM_FILE)
 
 # Target to generate the .asm file from the combined .vm file
 translate: $(ASM_FILE)
@@ -46,6 +48,8 @@ $(BIN_FILE): $(ASM_FILE)
 
 # Clean up generated files
 clean:
-	rm -f $(BIN_FILE) $(HEX_FILE) $(VM_FILES) $(VM_FILE) $(ASM_FILE) *.hack *.hex
+	rm -f build/*.hack build/*.hex build/*.vm build/*.asm
+	rm -f jack/demos/*.vm jack/system/*.vm
+	rm -f *.vm *.hack *.hex *.asm
 
 .PHONY: all clean compile translate assemble
