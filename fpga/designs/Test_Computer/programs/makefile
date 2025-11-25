@@ -1,6 +1,6 @@
 # File bases
 BASES = Sys Mem UART
-# BASES = SPISYS Mem UART SPI
+# BASES = demo_bluescreen Mem Screen
 
 # Extensions
 JACK_EXT = .jack

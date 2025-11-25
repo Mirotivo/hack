@@ -1,0 +1,61 @@
+/**
+ * Minimal Screen Library - Direct LCD hardware access
+ * Keeps VM overhead minimal by using simple wrappers
+ */
+class Screen {
+    /** Wait for LCD ready */
+    function void waitReady() {
+        // Wait for LCD ready - direct peek
+        while ((Mem.peek(2055) & 1) = 0) {}
+        return;
+    }
+    
+    /** Set drawing window */
+    function void setWindow() {
+        // CMD: CASET (0x2A = 42)
+        do Mem.poke(2054, 42);
+        // DATA: 0, 0, 0, 239
+        do Mem.poke(2053, 0);
+        do Mem.poke(2053, 0);
+        do Mem.poke(2053, 0);
+        do Mem.poke(2053, 239);
+        
+        // CMD: PASET (0x2B = 43)
+        do Mem.poke(2054, 43);
+        // DATA: 0, 0, 1, 63
+        do Mem.poke(2053, 0);
+        do Mem.poke(2053, 0);
+        do Mem.poke(2053, 1);
+        do Mem.poke(2053, 63);
+        
+        // CMD: RAMWR (0x2C = 44)
+        do Mem.poke(2054, 44);
+        return;
+    }
+        
+    /** Fill entire screen with a color */
+    function void fillScreen(int color) {
+        var int outer, inner, highByte, lowByte;
+        
+        // Extract high and low bytes from color
+        let lowByte = 31;                           // LSB: mask lower 8 bits (0x00FF)
+        let highByte = 0;                           // MSB: mask high 8 bits (0xFF00), then shift right
+        
+        // Set full screen window
+        do Screen.setWindow();
+        
+        // Nested loops: 300×256
+        let outer = 300;
+        while (outer > 0) {
+            let inner = 256;
+            while (inner > 0) {
+                do Mem.poke(2053, highByte);   // High byte
+                do Mem.poke(2053, lowByte);    // Low byte
+                let inner = inner - 1;
+            }
+            let outer = outer - 1;
+        }
+
+        return;
+    }
+}

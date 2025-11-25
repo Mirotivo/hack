@@ -1,0 +1,13 @@
+class Sys {
+    function void init() {
+
+        // Wait for LCD ready
+        do Screen.waitReady();
+        
+        // Fill screen with blue
+        do Screen.fillScreen(31);
+        
+        while (true) {}
+        return;
+    }
+}
