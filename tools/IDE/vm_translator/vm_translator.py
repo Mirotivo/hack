@@ -1,21 +1,48 @@
-# vm_translator/vm_translator.py
+"""
+VM Translator
+Translates VM code to Hack assembly language
+"""
+
 import os
 import io
 from vm_translator.vm_parser import VMParser
 from vm_translator.vm_code_emitter import VMCodeEmitter
 from vm_translator.vm_constants import *
 
-class VMTranslator:
 
-    def __init__(self, filepath) -> None:
+class VMTranslator:
+    """Translator for VM code to assembly"""
+    
+    def __init__(self, filepath):
+        """
+        Initialize translator with VM file
+        
+        Args:
+            filepath: Path to VM source file
+        """
         self.filepath = filepath
 
     @staticmethod
     def parse_filename(file):
+        """
+        Parse filename and extension
+        
+        Args:
+            file: Filename with extension
+            
+        Returns:
+            Tuple of (filename, extension)
+        """
         filename, ext = os.path.splitext(file)
         return filename, ext.lstrip('.')
 
-    def translate(self) -> str:   
+    def translate(self):
+        """
+        Translate VM code to assembly
+        
+        Returns:
+            Assembly code as string
+        """
         output = io.StringIO()
         filename, ext = self.parse_filename(self.filepath)
         if not (filename or filename[0].isupper() or ext != 'vm'):
@@ -24,6 +51,7 @@ class VMTranslator:
         parser = VMParser(self.filepath)
         writer = VMCodeEmitter(output)
         writer.set_filename(filename)
+        
         while parser.advance():
             cmd_type = parser.command_type()
             if cmd_type == C_ARITHMETIC:
@@ -42,6 +70,7 @@ class VMTranslator:
                 writer.write_call(parser.arg1(), parser.arg2())
             elif cmd_type == C_RETURN:
                 writer.write_return()
+        
         asm_code = output.getvalue()
         output.close()
         return asm_code

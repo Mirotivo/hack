@@ -1,6 +1,9 @@
-# vm_translator/vm_constants.py
+"""
+VM Translator Constants
+Defines command type constants for VM instruction classification
+"""
 
-# Command types
+# VM command type constants
 C_ARITHMETIC = 'C_ARITHMETIC'
 C_PUSH = 'C_PUSH'
 C_POP = 'C_POP'
