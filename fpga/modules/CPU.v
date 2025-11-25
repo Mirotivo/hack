@@ -66,35 +66,35 @@ module CPU(
     
     // ALU input selection for y
     Mux16 mux16_alu_y (
-        .a(a_out),
-        .b(IN_M),
-        .sel(a),
-        .out(alu_input_y)
+        .A(a_out),
+        .B(IN_M),
+        .SEL(a),
+        .OUT(alu_input_y)
     );
  
     // ALU
     ALU alu_inst (
-        .x(d_out),
-        .y(alu_input_y),
-        .zx(c[5]),
-        .nx(c[4]),
-        .zy(c[3]),
-        .ny(c[2]),
-        .f(c[1]),
-        .no(c[0]),
-        .out(alu_out),
-        .zr(zr),
-        .ng(ng)
+        .X(d_out),
+        .Y(alu_input_y),
+        .ZX(c[5]),
+        .NX(c[4]),
+        .ZY(c[3]),
+        .NY(c[2]),
+        .F(c[1]),
+        .NO(c[0]),
+        .OUT(alu_out),
+        .ZR(zr),
+        .NG(ng)
     );
 
     // Program counter
     PC pc_register (
-        .clk(CLK_CPU),
-        .reset(RESET),
-        .load(load_pc),
-        .inc(~load_pc),
-        .in(a_out),
-        .out(PC)
+        .CLK(CLK_CPU),
+        .RESET(RESET),
+        .LOAD(load_pc),
+        .INC(~load_pc),
+        .IN(a_out),
+        .OUT(PC)
     );
 
     // Combinational logic

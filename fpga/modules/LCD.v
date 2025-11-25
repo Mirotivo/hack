@@ -177,12 +177,12 @@ module LCD (
     // SPI Controller
     SPI spi (
         .CLK_100MHz(CLK_100MHz),
-        .load(spi_enable),
-        .in(spi_data),
+        .LOAD(spi_enable),
+        .IN(spi_data),
         .SCK(TFT_SCK),
         .SDI(TFT_SDI),
         .CSX(spi_csx),
-        .busy(spi_busy)
+        .BUSY(spi_busy)
     );
 
     // Combinational logic

@@ -103,34 +103,35 @@ module MemoryMappedIO(
     // UART - Transmitter
     UartTX uart_tx_inst (
         .CLK_100MHz(CLK_100MHz),
-        .load(uart_load),
-        .in(uart_data),
+        .LOAD(uart_load),
+        .IN(uart_data),
+        .OUT(),  // Not used
         .TX(UART_TX),
-        .tx_busy(uart_busy)
+        .TX_BUSY(uart_busy)
     );
 
     // UART - Receiver
     UartRX uart_rx_inst (
         .CLK_100MHz(CLK_100MHz),
-        .clear(uart_clear),
+        .CLEAR(uart_clear),
         .RX(UART_RX),
-        .out(uart_rx_out),
-        .rx_ready(uart_ready)
+        .OUT(uart_rx_out),
+        .RX_READY(uart_ready)
     );
 
     // LCD/TFT Display
     LCD lcd_inst (
         .CLK_100MHz(CLK_100MHz),
-        .load(lcd_load),
-        .data_in(lcd_data),
-        .is_cmd(is_cmd),
+        .LOAD(lcd_load),
+        .DATA_IN(lcd_data),
+        .IS_CMD(is_cmd),
         .TFT_CS(TFT_CS),
         .TFT_RESET(TFT_RESET),
         .TFT_SDI(TFT_SDI),
         .TFT_SCK(TFT_SCK),
         .TFT_DC(TFT_DC),
-        .busy(lcd_busy),
-        .ready(lcd_ready)
+        .BUSY(lcd_busy),
+        .READY(lcd_ready)
     );
 
     // Initial blocks

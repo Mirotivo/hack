@@ -30,40 +30,40 @@ module DMux8Way(
 
     // Module instantiations
     
-    Not not1(.in(SEL[0]), .out(not_sel0));
-    Not not2(.in(SEL[1]), .out(not_sel1));
-    Not not3(.in(SEL[2]), .out(not_sel2));
+    Not not1(.IN(SEL[0]), .OUT(not_sel0));
+    Not not2(.IN(SEL[1]), .OUT(not_sel1));
+    Not not3(.IN(SEL[2]), .OUT(not_sel2));
     
-    And and1(.a(not_sel0), .b(not_sel1), .out(sel_a1));
-    And and3(.a(sel_a1), .b(not_sel2), .out(sel_a));
-    And and4(.a(sel_a), .b(IN), .out(A));
+    And and1(.A(not_sel0), .B(not_sel1), .OUT(sel_a1));
+    And and3(.A(sel_a1), .B(not_sel2), .OUT(sel_a));
+    And and4(.A(sel_a), .B(IN), .OUT(A));
     
-    And and5(.a(SEL[0]), .b(not_sel1), .out(sel_b1));
-    And and6(.a(sel_b1), .b(not_sel2), .out(sel_b));
-    And and7(.a(sel_b), .b(IN), .out(B));
+    And and5(.A(SEL[0]), .B(not_sel1), .OUT(sel_b1));
+    And and6(.A(sel_b1), .B(not_sel2), .OUT(sel_b));
+    And and7(.A(sel_b), .B(IN), .OUT(B));
     
-    And and8(.a(not_sel0), .b(SEL[1]), .out(sel_c1));
-    And and9(.a(sel_c1), .b(not_sel2), .out(sel_c));
-    And and10(.a(sel_c), .b(IN), .out(C));
+    And and8(.A(not_sel0), .B(SEL[1]), .OUT(sel_c1));
+    And and9(.A(sel_c1), .B(not_sel2), .OUT(sel_c));
+    And and10(.A(sel_c), .B(IN), .OUT(C));
     
-    And and11(.a(SEL[0]), .b(SEL[1]), .out(sel_d1));
-    And and12(.a(sel_d1), .b(not_sel2), .out(sel_d));
-    And and13(.a(sel_d), .b(IN), .out(D));
+    And and11(.A(SEL[0]), .B(SEL[1]), .OUT(sel_d1));
+    And and12(.A(sel_d1), .B(not_sel2), .OUT(sel_d));
+    And and13(.A(sel_d), .B(IN), .OUT(D));
     
-    And and14(.a(not_sel0), .b(not_sel1), .out(sel_e1));
-    And and15(.a(sel_e1), .b(SEL[2]), .out(sel_e));
-    And and16(.a(sel_e), .b(IN), .out(E));
+    And and14(.A(not_sel0), .B(not_sel1), .OUT(sel_e1));
+    And and15(.A(sel_e1), .B(SEL[2]), .OUT(sel_e));
+    And and16(.A(sel_e), .B(IN), .OUT(E));
     
-    And and17(.a(SEL[0]), .b(not_sel1), .out(sel_f1));
-    And and18(.a(sel_f1), .b(SEL[2]), .out(sel_f));
-    And and19(.a(sel_f), .b(IN), .out(F));
+    And and17(.A(SEL[0]), .B(not_sel1), .OUT(sel_f1));
+    And and18(.A(sel_f1), .B(SEL[2]), .OUT(sel_f));
+    And and19(.A(sel_f), .B(IN), .OUT(F));
     
-    And and20(.a(not_sel0), .b(SEL[1]), .out(sel_g1));
-    And and21(.a(sel_g1), .b(SEL[2]), .out(sel_g));
-    And and22(.a(sel_g), .b(IN), .out(G));
+    And and20(.A(not_sel0), .B(SEL[1]), .OUT(sel_g1));
+    And and21(.A(sel_g1), .B(SEL[2]), .OUT(sel_g));
+    And and22(.A(sel_g), .B(IN), .OUT(G));
     
-    And and23(.a(SEL[0]), .b(SEL[1]), .out(sel_h1));
-    And and24(.a(sel_h1), .b(SEL[2]), .out(sel_h));
-    And and25(.a(sel_h), .b(IN), .out(H));
+    And and23(.A(SEL[0]), .B(SEL[1]), .OUT(sel_h1));
+    And and24(.A(sel_h1), .B(SEL[2]), .OUT(sel_h));
+    And and25(.A(sel_h), .B(IN), .OUT(H));
 
 endmodule

@@ -51,30 +51,30 @@ module ALU(
     // Module instantiations
     
     // X input processing
-    Mux16 g1(.a(X), .b(16'b0), .sel(ZX), .out(x1));          // if (ZX == 1) set x = 0
-    Not16 g2(.in(x1), .out(not_x1));
-    Mux16 g3(.a(x1), .b(not_x1), .sel(NX), .out(x2));        // if (NX == 1) set x = !x
+    Mux16 g1(.A(X), .B(16'b0), .SEL(ZX), .OUT(x1));          // if (ZX == 1) set x = 0
+    Not16 g2(.IN(x1), .OUT(not_x1));
+    Mux16 g3(.A(x1), .B(not_x1), .SEL(NX), .OUT(x2));        // if (NX == 1) set x = !x
 
     // Y input processing
-    Mux16 g4(.a(Y), .b(16'b0), .sel(ZY), .out(y1));          // if (ZY == 1) set y = 0
-    Not16 g5(.in(y1), .out(not_y1));
-    Mux16 g6(.a(y1), .b(not_y1), .sel(NY), .out(y2));        // if (NY == 1) set y = !y
+    Mux16 g4(.A(Y), .B(16'b0), .SEL(ZY), .OUT(y1));          // if (ZY == 1) set y = 0
+    Not16 g5(.IN(y1), .OUT(not_y1));
+    Mux16 g6(.A(y1), .B(not_y1), .SEL(NY), .OUT(y2));        // if (NY == 1) set y = !y
 
     // Function selection
-    Add16 g7(.a(x2), .b(y2), .out(add_xy));                  // add_xy = x + y
-    And16 g8(.a(x2), .b(y2), .out(and_xy));                  // and_xy = x & y
-    Mux16 g9(.a(and_xy), .b(add_xy), .sel(F), .out(o1));     // if (F == 1) set out = x + y else set out = x & y
+    Add16 g7(.A(x2), .B(y2), .OUT(add_xy));                  // add_xy = x + y
+    And16 g8(.A(x2), .B(y2), .OUT(and_xy));                  // and_xy = x & y
+    Mux16 g9(.A(and_xy), .B(add_xy), .SEL(F), .OUT(o1));     // if (F == 1) set out = x + y else set out = x & y
     
     // Output processing
-    Not16 g10(.in(o1), .out(not_o1));
-    Mux16 g11(.a(o1), .b(not_o1), .sel(NO), .out(o2));       // if (NO == 1) set out = !out
+    Not16 g10(.IN(o1), .OUT(not_o1));
+    Mux16 g11(.A(o1), .B(not_o1), .SEL(NO), .OUT(o2));       // if (NO == 1) set out = !out
 
     // Status flags
-    Or8Way g13(.in(o2[7:0]), .out(or_low));                  // or_low = Or(out[0..7])
-    Or8Way g14(.in(o2[15:8]), .out(or_high));                // or_high = Or(out[8..15])
-    Or g15(.a(or_low), .b(or_high), .out(not_zr));           // not_zr = Or(out[0..15])
-    Not g16(.in(not_zr), .out(ZR));                          // ZR = !not_zr
-    And g17(.a(o2[15]), .b(o2[15]), .out(NG));               // NG = out[15]
+    Or8Way g13(.IN(o2[7:0]), .OUT(or_low));                  // or_low = Or(out[0..7])
+    Or8Way g14(.IN(o2[15:8]), .OUT(or_high));                // or_high = Or(out[8..15])
+    Or g15(.A(or_low), .B(or_high), .OUT(not_zr));           // not_zr = Or(out[0..15])
+    Not g16(.IN(not_zr), .OUT(ZR));                          // ZR = !not_zr
+    And g17(.A(o2[15]), .B(o2[15]), .OUT(NG));               // NG = out[15]
 
     // Combinational logic
     

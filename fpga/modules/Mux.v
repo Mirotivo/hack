@@ -22,9 +22,9 @@ module Mux(
 
     // Module instantiations
     
-    Not not_gate(.in(SEL), .out(not_sel));
-    And and1(.a(not_sel), .b(A), .out(sel_a));
-    And and2(.a(SEL), .b(B), .out(sel_b));
-    Or or_gate(.a(sel_a), .b(sel_b), .out(OUT));
+    Not not_gate(.IN(SEL), .OUT(not_sel));
+    And and1(.A(not_sel), .B(A), .OUT(sel_a));
+    And and2(.A(SEL), .B(B), .OUT(sel_b));
+    Or or_gate(.A(sel_a), .B(sel_b), .OUT(OUT));
 
 endmodule

@@ -27,15 +27,15 @@ module DMux4Way(
 
     // Module instantiations
     
-    Not not1(.in(SEL[0]), .out(not_sel0));
-    Not not2(.in(SEL[1]), .out(not_sel1));
-    And and1(.a(not_sel0), .b(not_sel1), .out(sel_a));
-    And and2(.a(sel_a), .b(IN), .out(A));
-    And and3(.a(SEL[0]), .b(not_sel1), .out(sel_b));
-    And and4(.a(sel_b), .b(IN), .out(B));
-    And and5(.a(not_sel0), .b(SEL[1]), .out(sel_c));
-    And and6(.a(sel_c), .b(IN), .out(C));
-    And and7(.a(SEL[0]), .b(SEL[1]), .out(sel_d));
-    And and8(.a(sel_d), .b(IN), .out(D));
+    Not not1(.IN(SEL[0]), .OUT(not_sel0));
+    Not not2(.IN(SEL[1]), .OUT(not_sel1));
+    And and1(.A(not_sel0), .B(not_sel1), .OUT(sel_a));
+    And and2(.A(sel_a), .B(IN), .OUT(A));
+    And and3(.A(SEL[0]), .B(not_sel1), .OUT(sel_b));
+    And and4(.A(sel_b), .B(IN), .OUT(B));
+    And and5(.A(not_sel0), .B(SEL[1]), .OUT(sel_c));
+    And and6(.A(sel_c), .B(IN), .OUT(C));
+    And and7(.A(SEL[0]), .B(SEL[1]), .OUT(sel_d));
+    And and8(.A(sel_d), .B(IN), .OUT(D));
 
 endmodule

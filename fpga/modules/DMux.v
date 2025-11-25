@@ -21,8 +21,8 @@ module DMux(
 
     // Module instantiations
     
-    Not not_gate(.in(SEL), .out(not_sel));
-    And and_1(.a(not_sel), .b(IN), .out(A));
-    And and_2(.a(SEL), .b(IN), .out(B));
+    Not not_gate(.IN(SEL), .OUT(not_sel));
+    And and_1(.A(not_sel), .B(IN), .OUT(A));
+    And and_2(.A(SEL), .B(IN), .OUT(B));
 
 endmodule
