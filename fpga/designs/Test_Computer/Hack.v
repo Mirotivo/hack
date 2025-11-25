@@ -57,14 +57,14 @@ module Hack (
     Not not_but0(.IN(BUT[0]), .OUT(inv_0));
     Not not_but1(.IN(BUT[1]), .OUT(inv_1));
 
-    // Clock divider: 100MHz -> 50kHz
+    // Clock divider: 100MHz -> 200kHz
     // clk_cpu acts as clock enable signal, not separate clock domain
-    // 50kHz = 0.02ms per instruction
-    // Faster than UART (0.087ms/byte, ~4 CPU instructions per byte)
-    // Slower than SPI (0.00016ms/byte, ~125 SPI bytes per CPU instruction)
+    // 200kHz = 0.005ms per instruction (4x faster than before)
+    // Faster than UART (0.087ms/byte, ~17 CPU instructions per byte)
+    // Slower than LCD (0.001ms/tick, CPU is 5x slower than LCD)
     CLK_Divider clk_divider_inst (
         .CLK_IN(CLK_100MHz),
-        .DIVISOR(2000),             // Divide by 2,000 to get 50 kHz (0.02ms per instruction)
+        .DIVISOR(500),              // Divide by 500 to get 200 kHz (0.005ms per instruction)
         .CLK_OUT(clk_cpu),
         .CLK_COUNT(clk_count)
     );
