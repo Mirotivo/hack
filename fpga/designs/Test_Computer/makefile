@@ -1,33 +1,25 @@
 PROJ = Hack
 DEVICE = hx1k
 
-# Build Mode Configuration
-# Usage: make MODE=<mode> prog
-# Available modes:
-#   combined_sys      - Jack: Sys + Mem + UART (default)
-#   combined_demo     - Jack: demo_bluescreen + Mem + Screen
-#   asm_bluescreen    - ASM: bluescreen.asm
-#   asm_echo          - ASM: echo.asm
-#   asm_helloworld    - ASM: helloworld.asm
-#   empty_rom         - Empty ROM for testing
+# Predefined configurations
+CONFIG ?= sys
 
-MODE ?= combined_sys
+JACK_sys = jack/demos/Sys jack/system/Mem jack/system/UART
+JACK_demo = jack/demos/demo_bluescreen jack/system/Mem jack/system/Screen
 
-# Mode definitions: ROMFILE~BASES~ASM_FILE (using ~ as delimiter to avoid space issues)
-MODE_combined_sys = programs/build/combined.hack~jack/demos/Sys jack/system/Mem jack/system/UART~
-MODE_combined_demo = programs/build/combined.hack~jack/demos/demo_bluescreen jack/system/Mem jack/system/Screen~
-MODE_asm_bluescreen = programs/build/bluescreen.hack~~programs/asm/bluescreen.asm
-MODE_asm_echo = programs/build/echo.hack~~programs/asm/echo.asm
-MODE_asm_helloworld = programs/build/helloworld.hack~~programs/asm/helloworld.asm
-MODE_empty_rom = empty_rom.rom~~
+ASM_hello = programs/asm/helloworld.asm
+ASM_echo = programs/asm/echo.asm
+ASM_bluescreen = programs/asm/bluescreen.asm
 
-# Parse mode configuration using shell to preserve spaces in BASES
-MODE_CONFIG = $(MODE_$(MODE))
-ROMFILE = $(shell echo "$(MODE_CONFIG)" | cut -d'~' -f1)
-BASES = $(shell echo "$(MODE_CONFIG)" | cut -d'~' -f2)
-ASM_FILE = $(shell echo "$(MODE_CONFIG)" | cut -d'~' -f3)
+FILES = $(or $(JACK_$(CONFIG)),$(ASM_$(CONFIG)),$(JACK_sys))
 
-all: prog
+# Tool paths
+TOOLS_PATH = ../../../tools/IDE/main.py
+
+# Build directory
+BUILD_DIR = programs/build
+
+all: build
 
 $(PROJ).vvp: $(PROJ).v
 	iverilog -o $(PROJ).vvp -s $(PROJ)_tb $(PROJ)_tb.v
@@ -41,24 +33,50 @@ sim: $(PROJ).vvp
 view: $(PROJ).vcd
 	gtkwave $(PROJ).vcd
 
-# Update Hack.v with selected ROMFILE
-update_romfile:
-	@echo "Building for MODE=$(MODE)"
-	@echo "  ROMFILE: $(ROMFILE)"
-	@echo "  BASES: $(BASES)"
-	@echo "  ASM_FILE: $(ASM_FILE)"
-	@sed -i 's|^`define ROMFILE.*|`define ROMFILE "../designs/Test_Computer/$(ROMFILE)"|g' $(PROJ).v
+# Compile .jack files to .vm (FILES = basenames without extension)
+compile:
+	@echo "Compiling: $(FILES)"
+	@mkdir -p $(BUILD_DIR)
+	@for file in $(FILES); do \
+		echo "  programs/$$file.jack → programs/$$file.vm"; \
+		python3 $(TOOLS_PATH) "compile" programs/$$file.jack; \
+	done
 
-assemble: update_romfile
-	$(MAKE) -C programs clean
-ifneq ($(ASM_FILE),)
-	@echo "Assembling ASM file: $(ASM_FILE)"
-	python3 ../../../tools/IDE/main.py "assemble" $(ASM_FILE)
-else
-	@echo "Compiling Jack files with BASES: $(BASES)"
-	$(MAKE) -C programs BASES="$(BASES)"
-endif
-	@bash -c 'read -p "Press enter to continue..."'
+# Translate .vm files to .asm (FILES = basenames without extension)
+vmtranslate:
+	@echo "Translating: $(FILES)"
+	@mkdir -p $(BUILD_DIR)
+	@cat $(addprefix programs/, $(addsuffix .vm, $(FILES))) > $(BUILD_DIR)/combined.vm
+	@echo "  $(BUILD_DIR)/combined.vm → $(BUILD_DIR)/combined.asm"
+	@python3 $(TOOLS_PATH) "translate" $(BUILD_DIR)/combined.vm
+
+# Assemble .asm file to .hack (FILES = path to .asm file)
+assemble:
+	@echo "Assembling: $(FILES)"
+	@mkdir -p $(BUILD_DIR)
+	@python3 $(TOOLS_PATH) "assemble" $(FILES)
+	@HACK_FILE=$$(dirname $(FILES))/$$(basename $(FILES) .asm).hack; \
+	if [ "$$HACK_FILE" != "$(BUILD_DIR)/combined.hack" ]; then \
+		cp $$HACK_FILE $(BUILD_DIR)/combined.hack; \
+	fi
+	@echo "  Output: $(BUILD_DIR)/combined.hack"
+
+# Auto-detect and build
+build:
+	@if echo "$(FILES)" | grep -q "\.asm$$"; then \
+		$(MAKE) build_asm; \
+	else \
+		$(MAKE) build_jack; \
+	fi
+
+# Build Jack files (full chain)
+build_jack: compile vmtranslate
+	@$(MAKE) FILES="$(BUILD_DIR)/combined.asm" assemble
+	@echo "Build complete! Output: $(BUILD_DIR)/combined.hack"
+
+# Build ASM file (direct assembly)
+build_asm: assemble
+	@echo "Build complete! Output: $(BUILD_DIR)/combined.hack"
 
 $(PROJ).blif: $(PROJ).v
 	rm -f *.blif *.asc *.bin
@@ -70,23 +88,54 @@ $(PROJ).asc: $(PROJ).pcf $(PROJ).blif
 $(PROJ).bin: $(PROJ).asc
 	icepack $< $@
 
-prog: assemble $(PROJ).bin
-	../../../tools/winiceprogduino/winiceprogduino.exe -I COM4 $(PROJ).bin
+prog: build $(PROJ).bin
+	@echo "Programming FPGA..."
+	@if command -v iceprog > /dev/null 2>&1; then \
+		iceprog $(PROJ).bin; \
+	elif [ -f ../../../tools/winiceprogduino/winiceprogduino.exe ]; then \
+		../../../tools/winiceprogduino/winiceprogduino.exe -I COM4 $(PROJ).bin; \
+	else \
+		echo "Error: No FPGA programmer found (iceprog or winiceprogduino.exe)"; \
+		exit 1; \
+	fi
 
-# Show available modes
+# Show usage examples
 help:
-	@echo "Available build modes:"
-	@echo "  make MODE=combined_sys prog      - Jack: Sys + Mem + UART (default)"
-	@echo "  make MODE=combined_demo prog     - Jack: demo_bluescreen + Mem + Screen"
-	@echo "  make MODE=asm_bluescreen prog    - ASM: bluescreen.asm"
-	@echo "  make MODE=asm_echo prog          - ASM: echo.asm"
-	@echo "  make MODE=asm_helloworld prog    - ASM: helloworld.asm"
-	@echo "  make MODE=empty_rom prog         - Empty ROM"
+	@echo "Simple Makefile Usage"
+	@echo "====================="
 	@echo ""
-	@echo "Example: make MODE=asm_bluescreen prog"
+	@echo "Predefined Configurations (CONFIG=<name>):"
+	@echo "  Jack Configs:"
+	@echo "    sys         - Sys + Mem + UART (default)"
+	@echo "    demo        - demo_bluescreen + Mem + Screen"
+	@echo "  ASM Configs:"
+	@echo "    hello       - helloworld.asm"
+	@echo "    echo        - echo.asm"
+	@echo "    bluescreen  - bluescreen.asm"
+	@echo ""
+	@echo "Targets:"
+	@echo "  build        - Full chain: compile → vmtranslate → assemble"
+	@echo "  prog         - Build + synthesize + program FPGA"
+	@echo "  compile      - Compile .jack → .vm"
+	@echo "  vmtranslate  - Translate .vm → .asm"
+	@echo "  assemble     - Assemble .asm → .hack"
+	@echo "  sim          - Run Verilog simulation"
+	@echo "  view         - View waveform"
+	@echo "  clean        - Clean all build files"
+	@echo ""
+	@echo "Easy Usage (with CONFIG):"
+	@echo "  make prog                    # Default (sys)"
+	@echo "  make CONFIG=demo prog        # Demo bluescreen"
+	@echo "  make CONFIG=hello prog       # Hello world ASM"
+	@echo ""
+	@echo "Custom Files (with FILES):"
+	@echo "  make FILES=\"jack/demos/Sys jack/system/Mem\" build"
+	@echo "  make FILES=\"programs/asm/custom.asm\" assemble"
 
 clean:
 	rm -f *.blif *.asc *.bin *.vvp *.vcd *.out
-	$(MAKE) -C programs clean
+	rm -f $(BUILD_DIR)/*.vm $(BUILD_DIR)/*.asm $(BUILD_DIR)/*.hack
+	rm -f programs/jack/demos/*.vm programs/jack/system/*.vm
+	rm -f programs/asm/*.hack
 
-.PHONY: all clean prog sim view assemble help update_romfile
+.PHONY: all build compile vmtranslate assemble clean prog sim view help

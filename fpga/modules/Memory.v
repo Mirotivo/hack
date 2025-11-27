@@ -39,9 +39,13 @@ module Memory(
     reg [15:0] reg_ram [0:2047];
     
     // Initial blocks
+    integer i;
     
     initial begin
-        $readmemb(`RAMFILE, reg_ram);
+        // Initialize RAM to zeros
+        for (i = 0; i < 2048; i = i + 1) begin
+            reg_ram[i] = 16'b0;
+        end
     end
 
     // Sequential logic

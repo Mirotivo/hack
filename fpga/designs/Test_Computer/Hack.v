@@ -1,4 +1,3 @@
-`define RAMFILE "../designs/Test_Computer/empty_ram.ram"
 `define ROMFILE "../designs/Test_Computer/programs/build/combined.hack"
 `include "include.v"
 
