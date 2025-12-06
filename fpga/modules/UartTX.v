@@ -21,7 +21,9 @@ module UartTX (
     output reg TX
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     parameter CLK_FREQ = 100000000;     // 100 MHz clock
     parameter BAUD_RATE = 115200;       // 115200 baud rate
     localparam BIT_PERIOD = CLK_FREQ / BAUD_RATE;  // Number of clock cycles per bit
@@ -32,13 +34,17 @@ module UartTX (
     localparam DATA  = 2'b10;
     localparam STOP  = 2'b11;
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     reg [31:0] clk_cycles;
     reg [8:0] data_tx;
     reg [3:0] bit_index;
     reg [1:0] state;
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         clk_cycles = 0;
@@ -49,8 +55,6 @@ module UartTX (
         TX = 1;
         TX_BUSY = 0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK_100MHz) begin
         case (state)

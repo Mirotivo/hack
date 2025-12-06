@@ -18,19 +18,21 @@ module ROM(
     output reg [15:0] INSTRUCTION
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     localparam CLK_COUNT_READ = 5;
     
     // Memory storage
     reg [15:0] reg_rom [0:2047];  // 2K instructions
     
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         $readmemb(`ROMFILE, reg_rom);
     end
-
-    // Sequential logic
     
     always @(posedge CLK_100MHz) begin
         // Read operation - synchronized with CPU clock

@@ -9,7 +9,9 @@ module Or8Way(
     output OUT
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire out_01;
     wire out_23;
     wire out_45;
@@ -17,7 +19,9 @@ module Or8Way(
     wire out_0123;
     wire out_4567;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Or or1(.A(IN[0]), .B(IN[1]), .OUT(out_01));
     Or or2(.A(IN[2]), .B(IN[3]), .OUT(out_23));

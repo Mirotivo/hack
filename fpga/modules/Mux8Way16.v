@@ -21,11 +21,15 @@ module Mux8Way16(
     input [2:0] SEL
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire [15:0] out_abcd;
     wire [15:0] out_efgh;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Mux4Way16 mux4way16_1(.A(A), .B(B), .C(C), .D(D), .SEL(SEL[1:0]), .OUT(out_abcd));
     Mux4Way16 mux4way16_2(.A(E), .B(F), .C(G), .D(H), .SEL(SEL[1:0]), .OUT(out_efgh));

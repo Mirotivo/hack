@@ -20,7 +20,9 @@ module UartRX (
     input wire RX
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     parameter CLK_FREQ = 100000000;     // 100 MHz clock
     parameter BAUD_RATE = 115200;       // 115200 baud rate
     localparam BIT_PERIOD = CLK_FREQ / BAUD_RATE;        // Number of clock cycles per bit
@@ -32,13 +34,17 @@ module UartRX (
     localparam DATA  = 3'b010;
     localparam STOP  = 3'b011;
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     reg [31:0] clk_cycles;
     reg [7:0] data_rx;
     reg [3:0] bit_index;
     reg [2:0] state;
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         clk_cycles = 0;
@@ -48,8 +54,6 @@ module UartRX (
         OUT = 16'b0;
         RX_READY = 0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK_100MHz) begin
         if (CLEAR) begin

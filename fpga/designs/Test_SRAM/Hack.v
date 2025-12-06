@@ -91,20 +91,6 @@ module Hack (
     wire button_start;
     wire button_reset;
 
-    // Initial blocks
-    
-    initial begin
-        state = IDLE;
-        rst = 1;
-        we = 0;
-        address = 0;
-        data_write = 0;
-        data_captured = 0;
-        wait_counter = 0;
-        test1_pass = 0;
-        test2_pass = 0;
-    end
-
     // Module instantiations
     
     // Clock divider: Make it slow enough to see on LEDs
@@ -133,6 +119,18 @@ module Hack (
     );
 
     // Sequential logic
+    
+    initial begin
+        state = IDLE;
+        rst = 1;
+        we = 0;
+        address = 0;
+        data_write = 0;
+        data_captured = 0;
+        wait_counter = 0;
+        test1_pass = 0;
+        test2_pass = 0;
+    end
     
     // Main test state machine
     always @(posedge clk_slow) begin

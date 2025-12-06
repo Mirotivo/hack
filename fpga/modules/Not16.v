@@ -9,7 +9,9 @@ module Not16(
     output [15:0] OUT
 );
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Nand16 nand16(.A(IN), .B(IN), .OUT(OUT));
 

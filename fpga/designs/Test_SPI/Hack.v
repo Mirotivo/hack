@@ -68,15 +68,13 @@ module Hack (
         .BUSY(spi_busy)
     );
 
-    // Initial blocks
+    // Sequential logic
     
     initial begin
         state = LOAD_SEQ1;
         spi_enable = 0;
         spi_data = 0;
     end
-
-    // Sequential logic
     
     // Sequence controller - sends alternating test patterns
     always @(posedge clk_divided) begin

@@ -12,13 +12,13 @@ module DFF(
     output reg OUT
 );
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         OUT = 1'b0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK) begin
         OUT <= IN;

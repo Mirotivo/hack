@@ -9,7 +9,9 @@ module Not(
     output OUT
 );
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Nand nand1(.A(IN), .B(IN), .OUT(OUT));
 

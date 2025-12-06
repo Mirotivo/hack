@@ -12,10 +12,14 @@ module Add16(
     output [15:0] OUT
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire [15:0] carry;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     HalfAdder half_adder0(.A(A[0]), .B(B[0]), .SUM(OUT[0]), .CARRY(carry[0]));
     FullAdder full_adder1(.A(A[1]), .B(B[1]), .C(carry[0]), .SUM(OUT[1]), .CARRY(carry[1]));

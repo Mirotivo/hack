@@ -32,7 +32,9 @@ module ALU(
     output NG
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire [15:0] x1;
     wire [15:0] not_x1;
     wire [15:0] x2;
@@ -48,7 +50,9 @@ module ALU(
     wire or_high;
     wire not_zr;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     // X input processing
     Mux16 g1(.A(X), .B(16'b0), .SEL(ZX), .OUT(x1));          // if (ZX == 1) set x = 0
@@ -76,7 +80,9 @@ module ALU(
     Not g16(.IN(not_zr), .OUT(ZR));                          // ZR = !not_zr
     And g17(.A(o2[15]), .B(o2[15]), .OUT(NG));               // NG = out[15]
 
+    // --------------------------
     // Combinational logic
+    // --------------------------
     
     assign OUT = o2;
 

@@ -74,14 +74,12 @@ module Hack (
         .TX_BUSY(tx_busy)
     );
 
-    // Initial blocks
+    // Sequential logic
     
     initial begin
         uart_data = 16'h0000;
         uart_load = 0;
     end
-
-    // Sequential logic
     
     // UART transmission control
     always @(posedge CLK_100MHz) begin

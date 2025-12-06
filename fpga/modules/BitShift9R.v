@@ -17,13 +17,13 @@ module BitShift9R (
     output reg [8:0] OUT
 );
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         OUT = 9'b0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK) begin
         if (LOAD) begin

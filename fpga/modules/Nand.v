@@ -10,7 +10,9 @@ module Nand(
     output OUT
 );
 
+    // --------------------------
     // Combinational logic
+    // --------------------------
     
     nand(OUT, A, B);
 

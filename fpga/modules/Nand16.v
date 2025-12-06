@@ -10,7 +10,9 @@ module Nand16(
     output [15:0] OUT
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     parameter BITS = 16;
 
     // Module instantiations (generate loop)

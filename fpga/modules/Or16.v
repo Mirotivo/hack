@@ -10,12 +10,16 @@ module Or16(
     output [15:0] OUT
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire [15:0] not_a;
     wire [15:0] not_b;
     wire [15:0] not_ab;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Not16 not16_1(.IN(A), .OUT(not_a));
     Not16 not16_2(.IN(B), .OUT(not_b));

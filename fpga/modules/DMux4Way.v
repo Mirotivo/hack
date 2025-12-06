@@ -17,7 +17,9 @@ module DMux4Way(
     input [1:0] SEL
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire not_sel0;
     wire not_sel1;
     wire sel_a;
@@ -25,7 +27,9 @@ module DMux4Way(
     wire sel_c;
     wire sel_d;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Not not1(.IN(SEL[0]), .OUT(not_sel0));
     Not not2(.IN(SEL[1]), .OUT(not_sel1));

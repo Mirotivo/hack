@@ -14,7 +14,9 @@ module HalfAdder(
     output CARRY
 );
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Xor xor_gate(.A(A), .B(B), .OUT(SUM));
     And and_gate(.A(A), .B(B), .OUT(CARRY));

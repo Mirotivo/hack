@@ -11,7 +11,9 @@ module Inc16(
     output [15:0] OUT
 );
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Add16 add16(.A(IN), .B(16'b0000000000000001), .OUT(OUT));
 

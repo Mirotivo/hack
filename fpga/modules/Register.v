@@ -15,13 +15,13 @@ module Register (
     output reg [15:0] OUT
 );
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         OUT = 16'b0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK) begin
         if (LOAD)

@@ -15,12 +15,16 @@ module Mux(
     input SEL
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire not_sel;
     wire sel_a;
     wire sel_b;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Not not_gate(.IN(SEL), .OUT(not_sel));
     And and1(.A(not_sel), .B(A), .OUT(sel_a));

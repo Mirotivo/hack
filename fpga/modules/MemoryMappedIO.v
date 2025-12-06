@@ -52,7 +52,9 @@ module MemoryMappedIO(
     output wire TFT_DC
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     localparam ADDR_RAM_END    = 2047;
     localparam ADDR_LED        = 2048;
     localparam ADDR_BUTTON     = 2049;
@@ -87,7 +89,9 @@ module MemoryMappedIO(
     wire lcd_ready;
     reg lcd_load_pending;  // Track if we've already sent a load pulse
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     // Memory module for addresses 0 to 2047
     Memory memory_inst (
@@ -134,7 +138,9 @@ module MemoryMappedIO(
         .READY(lcd_ready)
     );
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         reg_led = 16'b0;
@@ -149,8 +155,6 @@ module MemoryMappedIO(
         lcd_load_pending = 1'b0;
         LED = 2'b0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK_100MHz) begin
         // Default values for control signals

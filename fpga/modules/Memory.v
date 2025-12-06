@@ -31,15 +31,20 @@ module Memory(
     output reg [15:0] DATA_R
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     localparam CLK_COUNT_READ  = 5;     // Read at same time as ROM
     localparam CLK_COUNT_WRITE = 10;    // Write after CPU computation
     
     // Memory storage
     reg [15:0] reg_ram [0:2047];
     
-    // Initial blocks
     integer i;
+
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         // Initialize RAM to zeros
@@ -47,8 +52,6 @@ module Memory(
             reg_ram[i] = 16'b0;
         end
     end
-
-    // Sequential logic
     
     always @(posedge CLK_100MHz) begin
         // Write operation - synchronized with CPU clock

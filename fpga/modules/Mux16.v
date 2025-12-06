@@ -15,7 +15,9 @@ module Mux16(
     input SEL
 );
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Mux mux0(.A(A[0]), .B(B[0]), .SEL(SEL), .OUT(OUT[0]));
     Mux mux1(.A(A[1]), .B(B[1]), .SEL(SEL), .OUT(OUT[1]));

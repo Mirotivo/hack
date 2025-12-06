@@ -17,7 +17,9 @@ module Keypad (
     output reg KEY_VALID
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     reg [3:0] scan_state;
     reg [3:0] scan_timer;
     reg key_reported;
@@ -25,7 +27,9 @@ module Keypad (
 
     integer i;
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         COL = 4'b0000;
@@ -36,8 +40,6 @@ module Keypad (
         key_reported = 0;
         col_idx = 2'd0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK) begin
         KEY_VALID <= 0;

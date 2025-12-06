@@ -22,7 +22,9 @@ module SPI (
     output reg CSX
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     parameter CLK_FREQ = 100000000;      // 100 MHz
     parameter SPI_FREQ = 1000000;        // 1 MHz SPI
     localparam SPI_PERIOD = CLK_FREQ / SPI_FREQ;
@@ -32,13 +34,23 @@ module SPI (
     localparam IDLE     = 1'd0;
     localparam TRANSMIT = 1'd1;
     
+    // --------------------------
     // Internal signals
+    // --------------------------
     reg state;
     reg [31:0] clk_cycles;
     reg [4:0] bit_index;
     reg [7:0] data_reg;
     
-    // Initial blocks
+    // --------------------------
+    // Combinational logic
+    // --------------------------
+    
+    assign BUSY = (state != IDLE);
+
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         SCK = 0;
@@ -49,12 +61,6 @@ module SPI (
         bit_index = 0;
         data_reg = 0;
     end
-
-    // Combinational logic
-    
-    assign BUSY = (state != IDLE);
-    
-    // Sequential logic
     
     always @(posedge CLK_100MHz) begin
         case (state)

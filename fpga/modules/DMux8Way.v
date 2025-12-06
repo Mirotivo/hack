@@ -21,14 +21,18 @@ module DMux8Way(
     input [2:0] SEL
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire not_sel0;
     wire not_sel1;
     wire not_sel2;
     wire sel_a1, sel_b1, sel_c1, sel_d1, sel_e1, sel_f1, sel_g1, sel_h1;
     wire sel_a, sel_b, sel_c, sel_d, sel_e, sel_f, sel_g, sel_h;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Not not1(.IN(SEL[0]), .OUT(not_sel0));
     Not not2(.IN(SEL[1]), .OUT(not_sel1));

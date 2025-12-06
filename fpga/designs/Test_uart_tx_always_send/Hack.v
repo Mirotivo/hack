@@ -74,14 +74,12 @@ module Hack (
         .TX_BUSY(tx_busy)
     );
 
-    // Initial blocks
+    // Sequential logic
     
     initial begin
         uart_data = 16'h0AFF;
         uart_load = 0;
     end
-
-    // Sequential logic
     
     // Clear the uart_load signal on the next clock cycle to ensure a pulse
     always @(posedge CLK_100MHz) begin

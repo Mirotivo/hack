@@ -75,7 +75,7 @@ module Hack (
         .READY(lcd_ready)
     );
 
-    // Initial blocks
+    // Sequential logic
     
     initial begin
         state = IDLE;
@@ -87,8 +87,6 @@ module Hack (
         lcd_data = 0;
         lcd_is_cmd = 0;
     end
-
-    // Sequential logic
     
     // State tick generator
     always @(posedge CLK_100MHz) begin

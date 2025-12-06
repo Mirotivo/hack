@@ -29,10 +29,14 @@ module SRAM_Controller (
     output wire WEX
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire [15:0] data_from_pin;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     // ICE40 Bidirectional I/O primitives
     // Each DATA bit needs its own SB_IO instance
@@ -51,7 +55,18 @@ module SRAM_Controller (
         end
     endgenerate
 
+    // --------------------------
+    // Combinational logic
+    // --------------------------
+    
+    // Control signals
+    assign CSX = 0;     // Always enabled (active low)
+    assign OEX = WE;    // Output Enable: HIGH during write, LOW during read
+    assign WEX = ~WE;   // Write Enable: LOW during write, HIGH during read
+
+    // --------------------------
     // Sequential logic
+    // --------------------------
     
     initial begin
         DATA_READ = 16'b0;
@@ -68,12 +83,5 @@ module SRAM_Controller (
             end
         end
     end
-
-    // Combinational logic
-    
-    // Control signals
-    assign CSX = 0;     // Always enabled (active low)
-    assign OEX = WE;    // Output Enable: HIGH during write, LOW during read
-    assign WEX = ~WE;   // Write Enable: LOW during write, HIGH during read
 
 endmodule

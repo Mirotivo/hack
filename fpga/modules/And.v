@@ -10,10 +10,14 @@ module And(
     output OUT
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire a_nand_b;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Nand nand1(.A(A), .B(B), .OUT(a_nand_b));
     Not not1(.IN(a_nand_b), .OUT(OUT));

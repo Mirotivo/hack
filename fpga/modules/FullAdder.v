@@ -15,12 +15,16 @@ module FullAdder(
     output CARRY
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire sum_ab;
     wire carry_ab;
     wire carry_abc;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     HalfAdder half_adder1(.A(A), .B(B), .SUM(sum_ab), .CARRY(carry_ab));
     HalfAdder half_adder2(.A(sum_ab), .B(C), .SUM(SUM), .CARRY(carry_abc));

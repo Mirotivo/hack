@@ -38,10 +38,14 @@ module CPU(
     output [15:0] ADDRESS_M
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     localparam CLK_COUNT_WRITE = 10;
 
+    // --------------------------
     // Internal registers
+    // --------------------------
     reg [15:0] a_out;
     reg [15:0] d_out;
 
@@ -62,7 +66,9 @@ module CPU(
     wire load_d;
     wire load_pc;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     // ALU input selection for y
     Mux16 mux16_alu_y (
@@ -97,7 +103,9 @@ module CPU(
         .OUT(PC)
     );
 
+    // --------------------------
     // Combinational logic
+    // --------------------------
     
     // Decode instruction fields
     assign {is_c_instruction, a, c, d, j} = {INSTRUCTION[15], INSTRUCTION[12], INSTRUCTION[11:6], INSTRUCTION[5:3], INSTRUCTION[2:0]};
@@ -121,7 +129,9 @@ module CPU(
     assign OUT_M = alu_out;
     assign ADDRESS_M = a_out;
 
+    // --------------------------
     // Sequential logic
+    // --------------------------
     
     always @(posedge CLK_100MHz) begin
         // A register - write after CPU computation

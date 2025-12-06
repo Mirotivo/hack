@@ -18,18 +18,26 @@ module Reset(
     output wire RESET
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     reg done;
     reg reset_r;
 
-    // Initial blocks
+    // --------------------------
+    // Combinational logic
+    // --------------------------
+    
+    assign RESET = reset_r;
+
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         done = 0;
         reset_r = 0;
     end
-
-    // Sequential logic
     
     // Remember that reset has been done
     always @(posedge CLK_100MHz)
@@ -42,9 +50,5 @@ module Reset(
         else
             reset_r <= 0;
     end
-
-    // Combinational logic
-    
-    assign RESET = reset_r;
 
 endmodule

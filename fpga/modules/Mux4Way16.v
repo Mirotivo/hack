@@ -17,11 +17,15 @@ module Mux4Way16(
     input [1:0] SEL
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire [15:0] out_ab;
     wire [15:0] out_cd;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Mux16 mux16_1(.A(A), .B(B), .SEL(SEL[0]), .OUT(out_ab));
     Mux16 mux16_2(.A(C), .B(D), .SEL(SEL[0]), .OUT(out_cd));

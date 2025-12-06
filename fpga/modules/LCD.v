@@ -28,7 +28,9 @@ module LCD (
     output reg TFT_DC
 );
 
+    // --------------------------
     // Parameters
+    // --------------------------
     parameter CLK_FREQ = 100000000;      // 100 MHz
     parameter STATE_FREQ = 1000000;      // 1 MHz state machine (0.001ms per tick, 20x faster than 50kHz CPU)
     localparam STATE_PERIOD = CLK_FREQ / STATE_FREQ;
@@ -92,7 +94,64 @@ module LCD (
     // Initialization ROM
     reg [7:0] init_rom [0:99];
     
-    // Initial blocks
+    // --------------------------
+    // Module instantiations
+    // --------------------------
+    
+    // SPI Controller
+    SPI spi (
+        .CLK_100MHz(CLK_100MHz),
+        .LOAD(spi_enable),
+        .IN(spi_data),
+        .SCK(TFT_SCK),
+        .SDI(TFT_SDI),
+        .CSX(spi_csx),
+        .BUSY(spi_busy)
+    );
+
+    // --------------------------
+    // Combinational logic
+    // --------------------------
+    
+    // State configuration table  
+    // Values adjusted for 1MHz tick rate (0.001ms per tick)
+    always @(*) begin
+        case (state)
+            RESET_HIGH_1:      begin rom_start = 0; byte_count = 0; delay_ms = 5000;     next_state_val = RESET_LOW; end       // 5ms
+            RESET_LOW:         begin rom_start = 0; byte_count = 0; delay_ms = 20000;    next_state_val = RESET_HIGH_2; end    // 20ms
+            RESET_HIGH_2:      begin rom_start = 0; byte_count = 0; delay_ms = 150000;   next_state_val = SOFT_RESET; end      // 150ms
+            SOFT_RESET:        begin rom_start = 0; byte_count = 1; delay_ms = 150000;   next_state_val = DISPLAY_OFF; end     // 150ms
+            DISPLAY_OFF:       begin rom_start = 0; byte_count = 1; delay_ms = 0;   next_state_val = POWER_CTRL_B; end
+            POWER_CTRL_B:      begin rom_start = 0; byte_count = 6; delay_ms = 0;   next_state_val = POWER_CTRL_A; end
+            POWER_CTRL_A:      begin rom_start = 6; byte_count = 4; delay_ms = 0;   next_state_val = DRIVER_TIMING_A; end
+            DRIVER_TIMING_A:   begin rom_start = 10; byte_count = 4; delay_ms = 0;  next_state_val = DRIVER_TIMING_B; end
+            DRIVER_TIMING_B:   begin rom_start = 14; byte_count = 3; delay_ms = 0;  next_state_val = POWER_ON_SEQ; end
+            POWER_ON_SEQ:      begin rom_start = 17; byte_count = 5; delay_ms = 0;  next_state_val = PUMP_RATIO; end
+            PUMP_RATIO:        begin rom_start = 22; byte_count = 2; delay_ms = 0;  next_state_val = POWER_CTRL_1; end
+            POWER_CTRL_1:      begin rom_start = 24; byte_count = 2; delay_ms = 0;  next_state_val = POWER_CTRL_2; end
+            POWER_CTRL_2:      begin rom_start = 26; byte_count = 2; delay_ms = 0;  next_state_val = VCOM_CTRL_1; end
+            VCOM_CTRL_1:       begin rom_start = 28; byte_count = 3; delay_ms = 0;  next_state_val = VCOM_CTRL_2; end
+            VCOM_CTRL_2:       begin rom_start = 31; byte_count = 2; delay_ms = 0;  next_state_val = MEM_ACCESS; end
+            MEM_ACCESS:        begin rom_start = 33; byte_count = 2; delay_ms = 0;  next_state_val = PIXEL_FORMAT; end
+            PIXEL_FORMAT:      begin rom_start = 35; byte_count = 2; delay_ms = 0;  next_state_val = FRAME_RATE; end
+            FRAME_RATE:        begin rom_start = 37; byte_count = 3; delay_ms = 0;  next_state_val = DISPLAY_FUNC; end
+            DISPLAY_FUNC:      begin rom_start = 40; byte_count = 4; delay_ms = 0;  next_state_val = GAMMA_DISABLE; end
+            GAMMA_DISABLE:     begin rom_start = 44; byte_count = 2; delay_ms = 0;  next_state_val = GAMMA_SET; end
+            GAMMA_SET:         begin rom_start = 46; byte_count = 2; delay_ms = 0;  next_state_val = POSITIVE_GAMMA; end
+            POSITIVE_GAMMA:    begin rom_start = 48; byte_count = 16; delay_ms = 0; next_state_val = NEGATIVE_GAMMA; end
+            NEGATIVE_GAMMA:    begin rom_start = 64; byte_count = 16; delay_ms = 0; next_state_val = SLEEP_OUT; end
+            SLEEP_OUT:         begin rom_start = 0; byte_count = 1; delay_ms = 120000; next_state_val = DISPLAY_ON; end    // 120ms
+            DISPLAY_ON:        begin rom_start = 0; byte_count = 1; delay_ms = 100000; next_state_val = INIT_COMPLETE; end  // 100ms
+            default:           begin rom_start = 0; byte_count = 0; delay_ms = 0;   next_state_val = IDLE; end
+        endcase
+    end
+
+    // Output assignments
+    assign TFT_CS = spi_csx;
+
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         // POWER_CTRL_B: 0xCB + 5 data bytes
@@ -171,59 +230,6 @@ module LCD (
         BUSY = 1;
         READY = 0;
     end
-
-    // Module instantiations
-    
-    // SPI Controller
-    SPI spi (
-        .CLK_100MHz(CLK_100MHz),
-        .LOAD(spi_enable),
-        .IN(spi_data),
-        .SCK(TFT_SCK),
-        .SDI(TFT_SDI),
-        .CSX(spi_csx),
-        .BUSY(spi_busy)
-    );
-
-    // Combinational logic
-    
-    // State configuration table  
-    // Values adjusted for 1MHz tick rate (0.001ms per tick)
-    always @(*) begin
-        case (state)
-            RESET_HIGH_1:      begin rom_start = 0; byte_count = 0; delay_ms = 5000;     next_state_val = RESET_LOW; end       // 5ms
-            RESET_LOW:         begin rom_start = 0; byte_count = 0; delay_ms = 20000;    next_state_val = RESET_HIGH_2; end    // 20ms
-            RESET_HIGH_2:      begin rom_start = 0; byte_count = 0; delay_ms = 150000;   next_state_val = SOFT_RESET; end      // 150ms
-            SOFT_RESET:        begin rom_start = 0; byte_count = 1; delay_ms = 150000;   next_state_val = DISPLAY_OFF; end     // 150ms
-            DISPLAY_OFF:       begin rom_start = 0; byte_count = 1; delay_ms = 0;   next_state_val = POWER_CTRL_B; end
-            POWER_CTRL_B:      begin rom_start = 0; byte_count = 6; delay_ms = 0;   next_state_val = POWER_CTRL_A; end
-            POWER_CTRL_A:      begin rom_start = 6; byte_count = 4; delay_ms = 0;   next_state_val = DRIVER_TIMING_A; end
-            DRIVER_TIMING_A:   begin rom_start = 10; byte_count = 4; delay_ms = 0;  next_state_val = DRIVER_TIMING_B; end
-            DRIVER_TIMING_B:   begin rom_start = 14; byte_count = 3; delay_ms = 0;  next_state_val = POWER_ON_SEQ; end
-            POWER_ON_SEQ:      begin rom_start = 17; byte_count = 5; delay_ms = 0;  next_state_val = PUMP_RATIO; end
-            PUMP_RATIO:        begin rom_start = 22; byte_count = 2; delay_ms = 0;  next_state_val = POWER_CTRL_1; end
-            POWER_CTRL_1:      begin rom_start = 24; byte_count = 2; delay_ms = 0;  next_state_val = POWER_CTRL_2; end
-            POWER_CTRL_2:      begin rom_start = 26; byte_count = 2; delay_ms = 0;  next_state_val = VCOM_CTRL_1; end
-            VCOM_CTRL_1:       begin rom_start = 28; byte_count = 3; delay_ms = 0;  next_state_val = VCOM_CTRL_2; end
-            VCOM_CTRL_2:       begin rom_start = 31; byte_count = 2; delay_ms = 0;  next_state_val = MEM_ACCESS; end
-            MEM_ACCESS:        begin rom_start = 33; byte_count = 2; delay_ms = 0;  next_state_val = PIXEL_FORMAT; end
-            PIXEL_FORMAT:      begin rom_start = 35; byte_count = 2; delay_ms = 0;  next_state_val = FRAME_RATE; end
-            FRAME_RATE:        begin rom_start = 37; byte_count = 3; delay_ms = 0;  next_state_val = DISPLAY_FUNC; end
-            DISPLAY_FUNC:      begin rom_start = 40; byte_count = 4; delay_ms = 0;  next_state_val = GAMMA_DISABLE; end
-            GAMMA_DISABLE:     begin rom_start = 44; byte_count = 2; delay_ms = 0;  next_state_val = GAMMA_SET; end
-            GAMMA_SET:         begin rom_start = 46; byte_count = 2; delay_ms = 0;  next_state_val = POSITIVE_GAMMA; end
-            POSITIVE_GAMMA:    begin rom_start = 48; byte_count = 16; delay_ms = 0; next_state_val = NEGATIVE_GAMMA; end
-            NEGATIVE_GAMMA:    begin rom_start = 64; byte_count = 16; delay_ms = 0; next_state_val = SLEEP_OUT; end
-            SLEEP_OUT:         begin rom_start = 0; byte_count = 1; delay_ms = 120000; next_state_val = DISPLAY_ON; end    // 120ms
-            DISPLAY_ON:        begin rom_start = 0; byte_count = 1; delay_ms = 100000; next_state_val = INIT_COMPLETE; end  // 100ms
-            default:           begin rom_start = 0; byte_count = 0; delay_ms = 0;   next_state_val = IDLE; end
-        endcase
-    end
-
-    // Output assignments
-    assign TFT_CS = spi_csx;
-
-    // Sequential logic
     
     // State tick generator
     always @(posedge CLK_100MHz) begin

@@ -10,11 +10,15 @@ module Xor(
     output OUT
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire a_or_b;
     wire a_nand_b;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Or or1(.A(A), .B(B), .OUT(a_or_b));
     Nand nand1(.A(A), .B(B), .OUT(a_nand_b));

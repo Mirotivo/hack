@@ -16,10 +16,14 @@ module DMux(
     input SEL
 );
 
+    // --------------------------
     // Internal signals
+    // --------------------------
     wire not_sel;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     Not not_gate(.IN(SEL), .OUT(not_sel));
     And and_1(.A(not_sel), .B(IN), .OUT(A));

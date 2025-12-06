@@ -26,6 +26,10 @@ module I2C(
     inout wire I2C_SCL
 );
 
+    // --------------------------
+    // Parameters
+    // --------------------------
+    
     // State machine states
     localparam IDLE        = 0;
     localparam START       = 1;
@@ -37,7 +41,11 @@ module I2C(
     localparam READ_ACK2   = 7;
     localparam STOP        = 8;
 
-    // Internal signals - State machine
+    // --------------------------
+    // Internal signals
+    // --------------------------
+    
+    // State machine
     reg [7:0] state;
     reg [7:0] saved_addr;
     reg [7:0] saved_data;
@@ -45,17 +53,19 @@ module I2C(
     reg [15:0] clk_div_counter;
     reg i2c_clk;
 
-    // Internal signals - SDA line control
+    // SDA line control
     wire sda_oe;
     wire sda_out;
     wire sda_in;
 
-    // Internal signals - SCL line control
+    // SCL line control
     wire scl_oe;
     wire scl_out;
     wire scl_in;
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     // SDA line with tristate logic
     InOut sda_inout (
@@ -73,7 +83,16 @@ module I2C(
         .dir(scl_oe)
     );
 
-    // Initial blocks
+    // --------------------------
+    // Combinational logic
+    // --------------------------
+    
+    assign READY = ((RST == 0) && (state == IDLE)) ? 1 : 0;
+    assign scl_out = i2c_clk;
+
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         state = IDLE;
@@ -84,13 +103,6 @@ module I2C(
         i2c_clk = 1;
         DATA_OUT = 0;
     end
-
-    // Combinational logic
-    
-    assign READY = ((RST == 0) && (state == IDLE)) ? 1 : 0;
-    assign scl_out = i2c_clk;
-
-    // Sequential logic
     
     // Clock divider for I2C clock generation
     always @(posedge CLK_100MHz) begin

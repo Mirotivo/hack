@@ -15,14 +15,14 @@ module CLK_Divider (
     output reg [31:0] CLK_COUNT
 );
 
-    // Initial blocks
+    // --------------------------
+    // Sequential logic
+    // --------------------------
     
     initial begin
         CLK_OUT = 1;
         CLK_COUNT = 0;
     end
-
-    // Sequential logic
     
     always @(posedge CLK_IN) begin
         CLK_COUNT <= CLK_COUNT + 1;

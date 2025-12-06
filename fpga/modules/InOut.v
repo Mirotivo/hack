@@ -15,7 +15,9 @@ module InOut(
     output dataR
 );
 
+    // --------------------------
     // Module instantiations
+    // --------------------------
     
     // SB_IO instantiation for bi-directional pin
     SB_IO #(

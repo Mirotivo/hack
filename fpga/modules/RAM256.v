@@ -19,16 +19,22 @@ module RAM256(
     output [15:0] OUT
 );
 
-    // Internal signals - RAM storage
+    // --------------------------
+    // Internal signals
+    // --------------------------
     reg [15:0] reg_ram [0:255];
 
+    // --------------------------
+    // Combinational logic
+    // --------------------------
+    
+    assign OUT = reg_ram[ADDRESS[7:0]];
+
+    // --------------------------
     // Sequential logic
+    // --------------------------
     
     always @(posedge CLK)
         if (LOAD) reg_ram[ADDRESS[7:0]] <= IN;
-
-    // Combinational logic
-    
-    assign OUT = reg_ram[ADDRESS[7:0]];
 
 endmodule
