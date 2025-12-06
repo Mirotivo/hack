@@ -1,7 +1,8 @@
 /**
  * The module SRAM_Controller is an SRAM memory controller
  * Controls read/write operations to external SRAM
- * Manages tri-state data bus and control signals
+ * Manages tri-state data bus using ICE40 SB_IO primitives
+ * NOTE: This module contains SB_IO and must be connected directly to top-level inout ports
  */
 `default_nettype none
 module SRAM_Controller (
@@ -15,8 +16,12 @@ module SRAM_Controller (
     // Address Interface
     input wire [17:0] ADDRESS,
 
-    // Data Interface (bidirectional)
+    // Data Interface (bidirectional - connects directly to FPGA pins)
     inout wire [15:0] DATA,
+
+    // Data from/to internal logic
+    input wire [15:0] DATA_WRITE,       // Data to write to SRAM
+    output reg [15:0] DATA_READ,        // Data read from SRAM
 
     // SRAM Control Signals
     output wire CSX,
@@ -25,42 +30,50 @@ module SRAM_Controller (
 );
 
     // Internal signals
-    reg [15:0] data_reg;
-    reg data_dir;
+    wire [15:0] data_from_pin;
 
-    // Initial blocks
+    // Module instantiations
+    
+    // ICE40 Bidirectional I/O primitives
+    // Each DATA bit needs its own SB_IO instance
+    genvar i;
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : sram_io
+            SB_IO #(
+                .PIN_TYPE(6'b1010_01),  // Tristate output (1010), input (01)
+                .PULLUP(1'b0)            // No pullup
+            ) sb_io_inst (
+                .PACKAGE_PIN(DATA[i]),              // Physical FPGA pin
+                .OUTPUT_ENABLE(WE),                 // Drive when WE=1 (writing)
+                .D_OUT_0(DATA_WRITE[i]),           // Data to output to pin
+                .D_IN_0(data_from_pin[i])          // Data input from pin
+            );
+        end
+    endgenerate
+
+    // Sequential logic
     
     initial begin
-        data_reg = 16'b0;
-        data_dir = 0;
+        DATA_READ = 16'b0;
+    end
+    
+    // Capture read data from SRAM
+    always @(posedge CLK or posedge RST) begin
+        if (RST) begin
+            DATA_READ <= 16'b0;
+        end else begin
+            if (!WE) begin
+                // Read operation - capture data from SRAM
+                DATA_READ <= data_from_pin;
+            end
+        end
     end
 
     // Combinational logic
     
-    // Tri-state buffer control
-    assign DATA = (data_dir) ? data_reg : 16'bz;
-
     // Control signals
     assign CSX = 0;     // Always enabled (active low)
-    assign OEX = ~WE;   // Output Enable when reading (active low)
-    assign WEX = WE;    // Write Enable (active low)
-
-    // Sequential logic
-    
-    always @(posedge CLK or posedge RST) begin
-        if (RST) begin
-            data_reg <= 16'b0;
-            data_dir <= 0;
-        end else begin
-            if (WE) begin
-                // Write operation
-                data_reg <= DATA;
-                data_dir <= 1; // Set DATA bus direction to write
-            end else begin
-                // Read operation
-                data_dir <= 0; // Set DATA bus direction to read
-            end
-        end
-    end
+    assign OEX = WE;    // Output Enable: HIGH during write, LOW during read
+    assign WEX = ~WE;   // Write Enable: LOW during write, HIGH during read
 
 endmodule
