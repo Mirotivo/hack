@@ -1,4 +1,4 @@
-`define ROMFILE "../designs/Test_Computer/programs/build/combined.hack"
+`define ROMFILE "programs/build/combined.hack"
 `include "include.v"
 
 /**
