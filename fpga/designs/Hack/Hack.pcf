@@ -20,22 +20,6 @@ set_io TFT_SDI    4	# PIO3_2B - Extension Pin 11 (BH34R) - MOSI/SDI (data to dis
 set_io TFT_SCK    7	# PIO3_3A - Extension Pin 13 (BH34R) - SPI Clock
 
 # SRAM
-set_io SRAM_DATA[0] 62	# SD0
-set_io SRAM_DATA[1] 63	# SD1
-set_io SRAM_DATA[2] 64	# SD2
-set_io SRAM_DATA[3] 65	# SD3
-set_io SRAM_DATA[4] 66	# SD4
-set_io SRAM_DATA[5] 68	# SD5
-set_io SRAM_DATA[6] 69	# SD6
-set_io SRAM_DATA[7] 71	# SD7
-set_io SRAM_DATA[8] 72	# SD8
-set_io SRAM_DATA[9] 60	# SD9
-set_io SRAM_DATA[10] 59	# SD10
-set_io SRAM_DATA[11] 57	# SD11
-set_io SRAM_DATA[12] 56	# SD12
-set_io SRAM_DATA[13] 54	# SD13
-set_io SRAM_DATA[14] 53	# SD14
-set_io SRAM_DATA[15] 52	# SD15
 set_io SRAM_ADDR[0] 79		# SA0
 set_io SRAM_ADDR[1] 80		# SA1
 set_io SRAM_ADDR[2] 81		# SA2
@@ -54,6 +38,22 @@ set_io SRAM_ADDR[14] 96		# SA14
 set_io SRAM_ADDR[15] 97		# SA15
 set_io SRAM_ADDR[16] 99		# SA16
 set_io SRAM_ADDR[17] 100	# SA17
-set_io SRAM_WEX 73		# SRAM_#WE
-set_io SRAM_OEX 74		# SRAM_#OE
-set_io SRAM_CSX 78		# SRAM_#CS
+set_io SRAM_DATA[0] 62  	# SD0
+set_io SRAM_DATA[1] 63  	# SD1
+set_io SRAM_DATA[2] 64  	# SD2
+set_io SRAM_DATA[3] 65  	# SD3
+set_io SRAM_DATA[4] 66  	# SD4
+set_io SRAM_DATA[5] 68  	# SD5
+set_io SRAM_DATA[6] 69  	# SD6
+set_io SRAM_DATA[7] 71  	# SD7
+set_io SRAM_DATA[8] 72  	# SD8
+set_io SRAM_DATA[9] 60  	# SD9
+set_io SRAM_DATA[10] 59 	# SD10
+set_io SRAM_DATA[11] 57 	# SD11
+set_io SRAM_DATA[12] 56 	# SD12
+set_io SRAM_DATA[13] 54 	# SD13
+set_io SRAM_DATA[14] 53 	# SD14
+set_io SRAM_DATA[15] 52 	# SD15
+set_io SRAM_WEX 73		    # SRAM_#WE
+set_io SRAM_OEX 74		    # SRAM_#OE
+set_io SRAM_CSX 78		    # SRAM_#CS
