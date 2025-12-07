@@ -1,28 +1,17 @@
-# Physical constraint file for ILI9341 TFT Display Test
+# physical constraint file
 # iCE40-HX1K on Olimex iCE40HX1K-EVB board
 
-set_io CLK_100MHz 15		# SYSCLOCK 100 MHz - Extension Pin 6 (EXTCLK)
+set_io CLK_100MHz 15		# SYSCLOCK 100 MHz
 
-set_io BUT[0] 41	# BUT1 (Used for reset) - On-board button, not on BH34R extension
-set_io BUT[1] 42	# BUT2 - On-board button, not on BH34R extension
+set_io BUT[0] 41	# BUT1
+set_io BUT[1] 42	# BUT2
 
-set_io LED[0] 40	# LED1 (Shows when display init complete) - Extension Pin 10
-set_io LED[1] 51	# LED2 (Shows when chip selected) - Extension Pin 12
+set_io LED[0] 40	# LED1 - Extension Pin 10 (BH34R)
+set_io LED[1] 51	# LED2 - Extension Pin 12 (BH34R)
 
-# ILI9341 TFT Display pins - Using GPIO pins
-# These map to UEXT connector or GPIO headers
-set_io TFT_CS     1	# Chip Select (CS) - PIO3_1A - Extension Pin 5 (BH34R)
-set_io TFT_RESET  2	# Reset pin - PIO3_1B - Extension Pin 7 (BH34R)
-set_io TFT_DC     3	# MOSI/SDI - data to display - PIO3_2A - Extension Pin 9 (BH34R)
-set_io TFT_SDI    4	# SPI Clock - PIO3_2B - Extension Pin 11 (BH34R)
-set_io TFT_SCK    7	# Data/Command select - PIO3_3A - Extension Pin 13 (BH34R)
-
-# Note: Connect your ILI9341 display as follows:
-# - VCC        -> 3.3V
-# - GND        -> GND
-# - TFT_CS     -> Display CS pin
-# - TFT_RESET  -> Display RESET pin  
-# - TFT_DC     -> Display DC pin (Data/Command)
-# - TFT_SDI    -> Display SDI/MOSI pin
-# - TFT_SCK    -> Display SCK pin
-# - LED        -> 3.3V (backlight, may need resistor)
+# ILI9341 TFT Display pins - Using GPIO extension pins
+set_io TFT_CS     1	# PIO3_1A - Extension Pin 5 (BH34R) - Chip Select
+set_io TFT_RESET  2	# PIO3_1B - Extension Pin 7 (BH34R) - Reset pin
+set_io TFT_DC     3	# PIO3_2A - Extension Pin 9 (BH34R) - Data/Command select
+set_io TFT_SDI    4	# PIO3_2B - Extension Pin 11 (BH34R) - MOSI/SDI (data to display)
+set_io TFT_SCK    7	# PIO3_3A - Extension Pin 13 (BH34R) - SPI Clock

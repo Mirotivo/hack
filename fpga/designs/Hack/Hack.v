@@ -25,7 +25,14 @@ module Hack (
     output TFT_RESET,
     output TFT_SDI,
     output TFT_SCK,
-    output TFT_DC
+    output TFT_DC,
+
+    // SRAM
+    output [17:0] SRAM_ADDR,
+    inout [15:0] SRAM_DATA,
+    output SRAM_WEX,
+    output SRAM_OEX,
+    output SRAM_CSX
 );
 
     // Internal signals - CPU and Memory

@@ -1,14 +1,13 @@
-# physical constrain file
-# assign io-pins to pin numbering of iCE40-HX1K on olimex board iCE40HX1K-EVB
-# compare to the schematic of the board and the datasheet of fpga
+# physical constraint file
+# iCE40-HX1K on Olimex iCE40HX1K-EVB board
 
 set_io CLK_100MHz 15		# SYSCLOCK 100 MHz
 
 set_io BUT[0] 41	# BUT1
 set_io BUT[1] 42	# BUT2
 
-set_io LED[0] 40	# LED1
-set_io LED[1] 51	# LED2
+set_io LED[0] 40	# LED1 - Extension Pin 10 (BH34R)
+set_io LED[1] 51	# LED2 - Extension Pin 12 (BH34R)
 
-set_io UART_RX 36	# PIO2_8/RxD connected to pin 3 of UEXT (PGM)
-set_io UART_TX 37	# PIO2_9/TxD connected to pin 4 of UEXT (PGM)
+set_io UART_RX 36	# PIO2_8/RxD - Extension Pin 16 (BH34R) - UEXT Pin 3 (BH10S)
+set_io UART_TX 37	# PIO2_9/TxD - Extension Pin 14 (BH34R) - UEXT Pin 4 (BH10S)

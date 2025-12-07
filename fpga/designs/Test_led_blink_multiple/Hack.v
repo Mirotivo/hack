@@ -14,7 +14,7 @@
 
 module Hack (
     // Clock
-    input wire clk_in,
+    input wire CLK_100MHz,
 
     // GPIO (LEDs)
     output reg [3:0] leds
@@ -28,7 +28,7 @@ module Hack (
     
     // Divide the input clock frequency by 100 million to get a toggle every second
     CLK_Divider divider_inst (
-        .CLK_IN(clk_in),
+        .CLK_IN(CLK_100MHz),
         .DIVISOR(100000000),
         .CLK_OUT(clk_out),
         .CLK_COUNT(clk_count)

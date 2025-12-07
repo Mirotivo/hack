@@ -19,33 +19,12 @@ module Hack (
     input [1:0] BUT,
     output [1:0] LED,
 
-    // UART (unused but needed for PCF)
-    input UART_RX,
-    output UART_TX,
-
-    // SPI (unused but needed for PCF)
-    output SPI_SDO,
-    input SPI_SDI,
-    output SPI_SCK,
-    output SPI_CSX,
-
     // SRAM
     output [17:0] SRAM_ADDR,
     inout [15:0] SRAM_DATA,
     output SRAM_WEX,
     output SRAM_OEX,
-    output SRAM_CSX,
-
-    // LCD (unused but needed for PCF)
-    output LCD_DCX,
-    output LCD_SDO,
-    output LCD_SCK,
-    output LCD_CSX,
-
-    // RTP (unused but needed for PCF)
-    input RTP_SDI,
-    output RTP_SDO,
-    output RTP_SCK
+    output SRAM_CSX
 );
 
     // Test patterns
@@ -292,17 +271,5 @@ module Hack (
                     (state == TEST_FAIL) ? 1'b0 :         // Fail = OFF
                     (state == IDLE) ? clk_count[22] :     // Idle = Slow blink
                     clk_count[20];                         // Running = Fast blink
-
-    // Unused outputs
-    assign UART_TX = 1;
-    assign SPI_SDO = 0;
-    assign SPI_SCK = 0;
-    assign SPI_CSX = 1;
-    assign LCD_DCX = 0;
-    assign LCD_SDO = 0;
-    assign LCD_SCK = 0;
-    assign LCD_CSX = 1;
-    assign RTP_SDO = 0;
-    assign RTP_SCK = 0;
 
 endmodule

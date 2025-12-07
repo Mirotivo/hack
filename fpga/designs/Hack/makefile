@@ -90,9 +90,7 @@ $(PROJ).bin: $(PROJ).asc
 
 prog: build $(PROJ).bin
 	@echo "Programming FPGA..."
-	@if command -v iceprog > /dev/null 2>&1; then \
-		iceprog $(PROJ).bin; \
-	elif [ -f ../../../tools/winiceprogduino/winiceprogduino.exe ]; then \
+	@if [ -f ../../../tools/winiceprogduino/winiceprogduino.exe ]; then \
 		../../../tools/winiceprogduino/winiceprogduino.exe -I COM4 $(PROJ).bin; \
 	else \
 		echo "Error: No FPGA programmer found (iceprog or winiceprogduino.exe)"; \

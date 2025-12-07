@@ -1,6 +1,6 @@
-# ICE40HX1K to Extension Connector Pin Mapping
+# ICE40HX1K-VQ100(VQFP100) to Extension Connector Pin Mapping
 
-## BH34R Connector Pin Mapping (Corrected)
+## BH34R Connector Pin Mapping
 
 Based on the physical connector layout, the BH34R connector is a 17x2 pin header with the following pin mapping:
 
@@ -37,21 +37,17 @@ set_io signal_name <ICE40HX1K_Pin_Number>
 Example:
 ```tcl
 # Using GPIO pins from the extension connector
-set_io my_output 1     # Maps to Extension pin 5 (PIO3_1A / IOL_1A)
-set_io my_input  2     # Maps to Extension pin 7 (PIO3_1B / IOL_1B)
+set_io my_output 1	# PIO3_1A - Extension Pin 5 (BH34R)
+set_io my_output 2	# PIO3_1B - Extension Pin 7 (BH34R)
+set_io my_output 3	# PIO3_2A - Extension Pin 9 (BH34R)
+set_io my_output 4	# PIO3_2B - Extension Pin 11 (BH34R)
+set_io my_output 7	# PIO3_3A - Extension Pin 13 (BH34R)
 
-# Using UART
-set_io uart_tx 37      # Maps to Extension pin 14 (PIO2_9/TxD / IOB_37)
-set_io uart_rx 36      # Maps to Extension pin 16 (PIO2_8/RxD / IOB_34)
+# Using leds
+set_io LED[0] 40	# LED1 - Extension Pin 10 (BH34R)
+set_io LED[1] 51	# LED2 - Extension Pin 12 (BH34R)
 
-# Using LEDs
-set_io led1 40         # Maps to Extension pin 10 (LED1 / IOB_41)
-set_io led2 51         # Maps to Extension pin 12 (LED2 / IOR_53)
-
-# Using External Clock
-set_io ext_clock 15    # Maps to Extension pin 6 (EXTCLK / IOL_7A_GBIN6)
+# Using Uart
+set_io UART_RX 36	# PIO2_8/RxD - Extension Pin 16 (BH34R) - UEXT Pin 3 (BH10S)
+set_io UART_TX 37	# PIO2_9/TxD - Extension Pin 14 (BH34R) - UEXT Pin 4 (BH10S)
 ```
-
-## ICE40HX1K-VQ100 Pin Reference
-
-For reference, the ICE40HX1K-VQ100 pin numbers mentioned above correspond to physical pins on the FPGA package. Always verify pin assignments match your specific board layout.

@@ -1,21 +1,59 @@
-# physical constrain file
-# assign io-pins to pin numbering of iCE40-HX1K on olimex board iCE40HX1K-EVB
-# compare to the schematic of the board and the datasheet of fpga
+# physical constraint file
+# iCE40-HX1K on Olimex iCE40HX1K-EVB board
 
 set_io CLK_100MHz 15		# SYSCLOCK 100 MHz
 
 set_io BUT[0] 41	# BUT1
 set_io BUT[1] 42	# BUT2
 
-set_io LED[0] 40	# LED1
-set_io LED[1] 51	# LED2
+set_io LED[0] 40	# LED1 - Extension Pin 10 (BH34R)
+set_io LED[1] 51	# LED2 - Extension Pin 12 (BH34R)
 
-set_io UART_RX 36	# PIO2_8/RxD connected to pin 3 of UEXT (PGM)
-set_io UART_TX 37	# PIO2_9/TxD connected to pin 4 of UEXT (PGM)
+set_io UART_RX 36	# PIO2_8/RxD - Extension Pin 16 (BH34R) - UEXT Pin 3 (BH10S)
+set_io UART_TX 37	# PIO2_9/TxD - Extension Pin 14 (BH34R) - UEXT Pin 4 (BH10S)
 
 # ILI9341 TFT Display pins - Using GPIO extension pins
-set_io TFT_CS     1	# Chip Select - PIO3_1A - Extension Pin 5 (BH34R)
-set_io TFT_RESET  2	# Reset pin - PIO3_1B - Extension Pin 7 (BH34R)
-set_io TFT_DC     3	# Data/Command select - PIO3_2A - Extension Pin 9 (BH34R)
-set_io TFT_SDI    4	# MOSI/SDI (data to display) - PIO3_2B - Extension Pin 11 (BH34R)
-set_io TFT_SCK    7	# SPI Clock - PIO3_3A - Extension Pin 13 (BH34R)
+set_io TFT_CS     1	# PIO3_1A - Extension Pin 5 (BH34R) - Chip Select
+set_io TFT_RESET  2	# PIO3_1B - Extension Pin 7 (BH34R) - Reset pin
+set_io TFT_DC     3	# PIO3_2A - Extension Pin 9 (BH34R) - Data/Command select
+set_io TFT_SDI    4	# PIO3_2B - Extension Pin 11 (BH34R) - MOSI/SDI (data to display)
+set_io TFT_SCK    7	# PIO3_3A - Extension Pin 13 (BH34R) - SPI Clock
+
+# SRAM
+set_io SRAM_DATA[0] 62	# SD0
+set_io SRAM_DATA[1] 63	# SD1
+set_io SRAM_DATA[2] 64	# SD2
+set_io SRAM_DATA[3] 65	# SD3
+set_io SRAM_DATA[4] 66	# SD4
+set_io SRAM_DATA[5] 68	# SD5
+set_io SRAM_DATA[6] 69	# SD6
+set_io SRAM_DATA[7] 71	# SD7
+set_io SRAM_DATA[8] 72	# SD8
+set_io SRAM_DATA[9] 60	# SD9
+set_io SRAM_DATA[10] 59	# SD10
+set_io SRAM_DATA[11] 57	# SD11
+set_io SRAM_DATA[12] 56	# SD12
+set_io SRAM_DATA[13] 54	# SD13
+set_io SRAM_DATA[14] 53	# SD14
+set_io SRAM_DATA[15] 52	# SD15
+set_io SRAM_ADDR[0] 79		# SA0
+set_io SRAM_ADDR[1] 80		# SA1
+set_io SRAM_ADDR[2] 81		# SA2
+set_io SRAM_ADDR[3] 82		# SA3
+set_io SRAM_ADDR[4] 83  	# SA4
+set_io SRAM_ADDR[5] 85  	# SA5
+set_io SRAM_ADDR[6] 86  	# SA6
+set_io SRAM_ADDR[7] 87  	# SA7
+set_io SRAM_ADDR[8] 89  	# SA8
+set_io SRAM_ADDR[9] 90  	# SA9
+set_io SRAM_ADDR[10] 91		# SA10
+set_io SRAM_ADDR[11] 93		# SA11
+set_io SRAM_ADDR[12] 94		# SA12
+set_io SRAM_ADDR[13] 95		# SA13
+set_io SRAM_ADDR[14] 96		# SA14
+set_io SRAM_ADDR[15] 97		# SA15
+set_io SRAM_ADDR[16] 99		# SA16
+set_io SRAM_ADDR[17] 100	# SA17
+set_io SRAM_WEX 73		# SRAM_#WE
+set_io SRAM_OEX 74		# SRAM_#OE
+set_io SRAM_CSX 78		# SRAM_#CS

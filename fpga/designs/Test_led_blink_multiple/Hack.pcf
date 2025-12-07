@@ -1,9 +1,9 @@
 # physical constraint file
+# iCE40-HX1K on Olimex iCE40HX1K-EVB board
 
-# Clock
-set_io CLK_100MHz_in 15
+set_io CLK_100MHz 15		# SYSCLOCK 100 MHz
 
-set_io leds[0] 1 # PIO3_1A
-set_io leds[1] 2 # PIO3_1B
-set_io leds[2] 3 # PIO3_2A
-set_io leds[3] 4 # PIO3_2B
+set_io leds[0] 1 # PIO3_1A - Extension Pin 5 (BH34R) - Chip Select
+set_io leds[1] 2 # PIO3_1B - Extension Pin 7 (BH34R) - Reset pin
+set_io leds[2] 3 # PIO3_2A - Extension Pin 9 (BH34R) - Data/Command select
+set_io leds[3] 4 # PIO3_2B - Extension Pin 11 (BH34R) - MOSI/SDI (data to display)

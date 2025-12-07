@@ -1,9 +1,8 @@
 # physical constraint file
+# iCE40-HX1K on Olimex iCE40HX1K-EVB board
 
-# Bit 2
-set_io CLK_100MHz 15
-set_io but[0] 41
-set_io but[1] 42
+set_io BUT[0] 41	# BUT1
+set_io BUT[1] 42	# BUT2
 
-set_io led[0] 40
-set_io led[1] 51
+set_io LED[0] 40	# LED1 - Extension Pin 10 (BH34R)
+set_io LED[1] 51	# LED2 - Extension Pin 12 (BH34R)
