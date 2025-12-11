@@ -1,0 +1,12 @@
+# Pin constraint file for GateMate A1 FPGA
+# Olimex GateMate A1 board
+# Format: CCF (Constraint Configuration File)
+
+# Clock input - 10 MHz oscillator on Olimex GateMate board
+# Typically on IO_SB_A8 or check your specific board documentation
+Pin_in   "CLK"     Loc = "IO_SB_A8";
+
+# LED output - Use one of the available GPIO pins
+# IO_NB_A4 is commonly used for LED on GateMate boards
+# Adjust according to your specific board layout
+Pin_out  "LED"     Loc = "IO_SB_B6";
